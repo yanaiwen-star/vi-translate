@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>登录 · vi-translate</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'PingFang SC', system-ui, sans-serif;
+    background: radial-gradient(1200px 600px at 20% 0%, #09BC6E 0%, transparent 60%),
+                radial-gradient(1000px 500px at 100% 100%, #06AD56 0%, transparent 55%),
+                #07C160; }
+  .glass { background: rgba(255,255,255,.82); backdrop-filter: blur(18px); }
+  .tab-on { background:#07C160; color:#fff; }
+  .tab-off { background:#f1f5f9; color:#475569; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <div class="glass w-full max-w-md rounded-3xl shadow-2xl p-8 transition">
+    <div class="text-center mb-6">
+      <div class="text-2xl font-semibold text-gray-900 tracking-tight">vi-translate</div>
+      <div class="text-sm text-gray-500 mt-1">实时语音 / 视觉同传 · 账号登录</div>
+    </div>
+    <div class="flex gap-2 mb-6">
+      <button id="tabPwd" class="tab-on flex-1 py-2 rounded-xl font-medium transition">密码</button>
+      <button id="tabWx" class="tab-off flex-1 py-2 rounded-xl font-medium transition">微信</button>
+    </div>
+
+    <!-- 密码面板 -->
+    <div id="panelPwd">
+      <div class="flex gap-2 mb-4">
+        <button id="subLogin" class="tab-on flex-1 py-1.5 rounded-lg text-sm font-medium transition">登录</button>
+        <button id="subReg" class="tab-off flex-1 py-1.5 rounded-lg text-sm font-medium transition">注册</button>
+      </div>
+      <input id="email" type="email" placeholder="邮箱" autocomplete="email"
+        class="w-full px-4 py-3 rounded-xl border border-gray-200 mb-3 outline-none focus:ring-2 focus:ring-[#07C160] transition" />
+      <input id="password" type="password" placeholder="密码（至少 8 位）" autocomplete="current-password"
+        class="w-full px-4 py-3 rounded-xl border border-gray-200 mb-3 outline-none focus:ring-2 focus:ring-[#07C160] transition" />
+      <div class="flex gap-2 mb-4">
+        <input id="captchaInputPwd" type="text" placeholder="图形验证码" inputmode="text" maxlength="6" autocomplete="off"
+          class="flex-1 px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-[#07C160] transition" />
+        <img id="captchaImgPwd" src="" alt="点击换一张" title="点击换一张"
+          class="h-[50px] w-[140px] rounded-xl border border-gray-200 cursor-pointer select-none" />
+      </div>
+      <button id="submitPwd" class="w-full py-3 rounded-xl bg-[#07C160] text-white font-medium hover:opacity-90 transition shadow-lg shadow-green-600/30">登录</button>
+    </div>
+
+    <!-- 微信面板（主身份） -->
+    <div id="panelWx" class="hidden text-center">
+      <p class="text-sm text-gray-500 mb-4">用微信扫一扫登录，小程序与网页账号自动互通</p>
+      <div class="flex justify-center mb-3">
+        <img id="wxQrImg" src="" alt="微信二维码" class="w-[200px] h-[200px] border border-gray-200 rounded-xl bg-white" />
+      </div>
+      <p id="wxQrHint" class="text-xs text-gray-400">打开微信扫一扫上方二维码</p>
+      <button id="wxQrRefresh" class="mt-3 px-4 py-2 text-sm rounded-xl bg-white text-[#07C160] border border-[#07C160] hover:bg-green-50 transition">刷新二维码</button>
+    </div>
+
+    <div id="msg" class="text-sm text-red-500 mt-3 text-center min-h-[20px]"></div>
+    <div class="text-center mt-4"><a href="/pricing.html" class="text-sm text-[#07C160] hover:underline">查看套餐与 pricing →</a></div>
+  </div>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>
+  // 微信 OAuth 回调后，把 cookie 中的 vt_token 同步到 localStorage 并进入工作台
+  (function () {
+    const m = document.cookie.match(/(?:^|;\s*)vt_token=([^;]+)/);
+    if (m) {
+      const t = decodeURIComponent(m[1]);
+      if (t) { localStorage.setItem('vt_token', t); location.href = '/dialog'; }
+    }
+  })();
+
+  const msg = document.getElementById('msg');
+  const setMsg = (t) => { msg.textContent = t || ''; };
+
+  // tab 切换
+  const tabPwd = document.getElementById('tabPwd');
+  const tabWx = document.getElementById('tabWx');
+  const panelPwd = document.getElementById('panelPwd');
+  const panelWx = document.getElementById('panelWx');
+  const ON = 'tab-on flex-1 py-2 rounded-xl font-medium transition';
+  const OFF = 'tab-off flex-1 py-2 rounded-xl font-medium transition';
+  function showTab(which) {
+    setMsg('');
+    tabPwd.className = OFF; tabWx.className = OFF;
+    panelPwd.classList.add('hidden'); panelWx.classList.add('hidden');
+    if (which === 'pwd') { tabPwd.className = ON; panelPwd.classList.remove('hidden'); }
+    if (which === 'wx') { tabWx.className = ON; panelWx.classList.remove('hidden'); }
+  }
+  tabPwd.onclick = () => showTab('pwd');
+  tabWx.onclick = () => { showTab('wx'); showWxQr(); };
+
+  // 密码面板：登录 / 注册 切换
+  const subLogin = document.getElementById('subLogin');
+  const subReg = document.getElementById('subReg');
+  const submitPwd = document.getElementById('submitPwd');
+  let pwdMode = 'login';
+  const PON = 'tab-on flex-1 py-1.5 rounded-lg text-sm font-medium transition';
+  const POFF = 'tab-off flex-1 py-1.5 rounded-lg text-sm font-medium transition';
+  function setPwdMode(m) {
+    pwdMode = m; setMsg('');
+    if (m === 'login') { subLogin.className = PON; subReg.className = POFF; submitPwd.textContent = '登录'; }
+    else { subReg.className = PON; subLogin.className = POFF; submitPwd.textContent = '注册'; }
+  }
+  subLogin.onclick = () => setPwdMode('login');
+  subReg.onclick = () => setPwdMode('register');
+
+  submitPwd.onclick = async () => {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const captchaAnswer = document.getElementById('captchaInputPwd').value.trim();
+    setMsg('');
+    if (!email || !password) { setMsg('请填写邮箱和密码'); return; }
+    if (!captchaAnswer) { setMsg('请先输入图形验证码'); loadPwdCaptcha(); return; }
+    if (!pwdCaptchaId) { setMsg('图形验证码未加载,请刷新'); await loadPwdCaptcha(); return; }
+    const url = pwdMode === 'login' ? '/auth/login' : '/auth/register';
+    try {
+      const r = await fetch(url, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, captcha_id: pwdCaptchaId, captcha_answer: captchaAnswer }),
+      });
+      const d = await r.json();
+      if (!r.ok) { setMsg(d.detail || '操作失败'); loadPwdCaptcha(); return; }
+      localStorage.setItem('vt_token', d.access_token);
+      localStorage.setItem('vt_refresh', d.refresh_token);
+      location.href = '/dialog';
+    } catch (e) { setMsg('网络错误，请重试'); loadPwdCaptcha(); }
+  };
+
+  // 密码面板独立的图形验证码
+  const captchaImgPwd = document.getElementById('captchaImgPwd');
+  let pwdCaptchaId = '';
+  async function loadPwdCaptcha() {
+    try {
+      const r = await fetch('/auth/captcha');
+      const d = await r.json();
+      pwdCaptchaId = d.captcha_id || '';
+      captchaImgPwd.src = d.image || '';
+    } catch (e) { setMsg('图形验证码加载失败'); }
+  }
+  captchaImgPwd.onclick = loadPwdCaptcha;
+  loadPwdCaptcha();  // 进入页面立即给密码面板加载一张
+
+  // 微信登录
+  const wechatLogin = document.getElementById('wechatLogin');
+
+  // 微信扫码登录
+  const wxQrImg = document.getElementById('wxQrImg');
+  const wxQrHint = document.getElementById('wxQrHint');
+  const wxQrRefresh = document.getElementById('wxQrRefresh');
+  let wxPollTimer = null;
+  let wxSessionId = '';
+
+  async function showWxQr() {
+    setMsg('');
+    if (wxPollTimer) { clearInterval(wxPollTimer); wxPollTimer = null; }
+    wxQrHint.textContent = '正在生成二维码...';
+    try {
+      const r = await fetch('/api/wx/qr_start');
+      const d = await r.json();
+      if (!d.qr_url) { wxQrHint.textContent = '二维码生成失败：' + (d.detail || '请重试'); return; }
+      wxSessionId = d.session_id;
+      // 用 qrcode 库把 URL 转成 data:image/png
+      const dataUrl = await QRCode.toDataURL(d.qr_url, { width: 200, margin: 1 });
+      wxQrImg.src = dataUrl;
+      wxQrHint.textContent = '打开微信扫一扫上方二维码';
+      // 开始轮询
+      wxPollTimer = setInterval(pollWxQr, 2000);
+    } catch (e) { wxQrHint.textContent = '网络错误，请重试'; }
+  }
+
+  async function pollWxQr() {
+    if (!wxSessionId) return;
+    try {
+      const r = await fetch('/api/wx/qr_status?session_id=' + encodeURIComponent(wxSessionId));
+      const d = await r.json();
+      if (d.status === 'pending') return;
+      if (d.status === 'scanned') {
+        wxQrHint.textContent = '已扫码，请在手机上确认登录';
+        return;
+      }
+      if (d.status === 'confirmed') {
+        clearInterval(wxPollTimer); wxPollTimer = null;
+        if (d.access_token) {
+          localStorage.setItem('vt_token', d.access_token);
+        }
+        if (d.refresh_token) {
+          localStorage.setItem('vt_refresh', d.refresh_token);
+        }
+        wxQrHint.textContent = '✓ 登录成功,正在跳转...';
+        location.href = '/dialog';
+        return;
+      }
+      if (d.status === 'expired') {
+        clearInterval(wxPollTimer); wxPollTimer = null;
+        wxQrHint.textContent = '二维码已过期,请点击下方按钮刷新';
+        return;
+      }
+    } catch (e) { /* 忽略网络抖动,继续轮询 */ }
+  }
+
+  wxQrRefresh.onclick = showWxQr;
+</script>
+</body></html>

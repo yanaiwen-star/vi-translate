@@ -1,0 +1,166 @@
+# ============================================================
+# vi-translate v2 - 2核2G 调优版 docker-compose
+# 内存预算: postgres 512M + redis 128M + app 700M + nginx 64M = 1.4G
+# 警告: 服务器无 swap，任何容器 OOM 都会被直接 kill
+# ============================================================
+
+# 共享日志配置：每个容器最多 3 个 10MB 文件 = 30MB/容器
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vi-postgres
+    restart: unless-stopped
+    logging: *default-logging
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+    # 2G 内存下的 Postgres 调优
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=128MB"
+      - "-c"
+      - "max_connections=50"
+      - "-c"
+      - "work_mem=2MB"
+      - "-c"
+      - "maintenance_work_mem=64MB"
+      - "-c"
+      - "effective_cache_size=384MB"
+      - "-c"
+      - "wal_buffers=4MB"
+      - "-c"
+      - "default_statistics_target=100"
+      - "-c"
+      - "log_min_duration_statement=500ms"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+    # 5432 不对外暴露（仅 internal 网络访问）
+
+  redis:
+    image: redis:7-alpine
+    container_name: vi-redis
+    restart: unless-stopped
+    logging: *default-logging
+    command:
+      - "redis-server"
+      - "--maxmemory"
+      - "128mb"
+      - "--maxmemory-policy"
+      - "allkeys-lru"
+      - "--save"
+      - "60"
+      - "1000"
+      - "--appendonly"
+      - "yes"
+    volumes:
+      - redisdata:/data
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: vi-app
+    restart: unless-stopped
+    logging: *default-logging
+    env_file: ../.env
+    environment:
+      # 显式覆盖 .env 里的 DATABASE_URL，确保走容器内部主机名
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      REDIS_URL: redis://redis:6379/0
+    networks:
+      - internal
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 700M
+        reservations:
+          memory: 256M
+    # 8000 不直接对外 - 仅通过 nginx 访问
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: vi-nginx
+    restart: unless-stopped
+    logging: *default-logging
+    ports:
+      - "80:80"
+      # 443:443 备案后再开（届时 setup.sh 会自动追加）
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - internal
+      - external
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+
+networks:
+  internal:
+    driver: bridge
+    name: vi-internal
+  external:
+    driver: bridge
+    name: vi-external
+
+volumes:
+  pgdata:
+    name: vi-pgdata
+  redisdata:
+    name: vi-redisdata
+  nginx_logs:
+    name: vi-nginx-logs

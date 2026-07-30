@@ -1,0 +1,195 @@
+/* pages/history/history.wxss */
+
+.page {
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 200rpx 0;
+  color: var(--text-hint);
+}
+
+.empty-icon {
+  font-size: 100rpx;
+  opacity: 0.5;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 30rpx;
+  color: var(--text-secondary);
+}
+
+.empty-sub {
+  font-size: 24rpx;
+  margin-top: 8rpx;
+}
+
+/* 会话列表 */
+.session-list {
+  padding: 24rpx;
+}
+
+.session-item {
+  margin-bottom: 20rpx;
+  transition: transform 0.2s;
+}
+
+.session-item:active {
+  transform: scale(0.98);
+}
+
+.session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.session-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.session-time {
+  font-size: 22rpx;
+  color: var(--text-hint);
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}
+
+.session-preview {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 16rpx;
+}
+
+.session-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12rpx;
+  border-top: 2rpx solid var(--border);
+}
+
+.session-stats {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.stat-text {
+  font-size: 22rpx;
+  color: var(--text-hint);
+}
+
+.session-arrow {
+  font-size: 36rpx;
+  color: var(--text-hint);
+  font-weight: 300;
+}
+
+/* 详情视图 */
+.detail-header {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  background: #fff;
+  border-bottom: 2rpx solid var(--border);
+}
+
+.back-btn {
+  font-size: 28rpx;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.detail-title {
+  flex: 1;
+  text-align: center;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 0 16rpx;
+}
+
+.placeholder {
+  width: 100rpx;
+}
+
+.detail-messages {
+  height: calc(100vh - 120rpx);
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.msg-row {
+  margin-bottom: 24rpx;
+}
+
+.msg-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.msg-row.msg-zh .msg-card {
+  border-left: 6rpx solid var(--lang-zh);
+}
+
+.msg-row.msg-vie .msg-card {
+  border-left: 6rpx solid var(--lang-vie);
+}
+
+.msg-lang {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-bottom: 16rpx;
+}
+
+.msg-arrow {
+  color: var(--text-hint);
+  font-size: 22rpx;
+}
+
+.msg-source,
+.msg-target {
+  margin-bottom: 12rpx;
+}
+
+.msg-label {
+  display: inline-block;
+  font-size: 20rpx;
+  color: var(--text-hint);
+  background: var(--bg);
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+  margin-right: 12rpx;
+}
+
+.msg-text {
+  font-size: 28rpx;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.msg-time {
+  text-align: right;
+  font-size: 20rpx;
+  color: var(--text-hint);
+  margin-top: 8rpx;
+}
+
+.chat-spacer {
+  height: 40rpx;
+}

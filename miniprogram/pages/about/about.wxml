@@ -1,0 +1,74 @@
+<!--pages/about/about.wxml - 关于我们-->
+<view class="page">
+
+  <!-- 公司简介 -->
+  <view class="about-hero card">
+    <view class="ah-logo">悦</view>
+    <view class="ah-name">南宁市悦迅翻译有限公司</view>
+    <view class="ah-en">HAPPY TRANSLATION</view>
+    <view class="ah-slogan">专注于越南语翻译服务的公司</view>
+  </view>
+
+  <!-- 简介正文 -->
+  <view class="section card">
+    <view class="sec-title">公司简介</view>
+    <view class="sec-text">南宁市悦迅翻译有限公司（HAPPY TRANSLATION）成立于 2011 年，是专注于越南语翻译服务的公司。14 年深耕中越语言服务，从同声传译到 AI 实时翻译，让中越沟通零距离。</view>
+    <view class="sec-text">我们的译员来自中央民族语文翻译局、中央人民广播电台越语部、中国国际广播电台越语部、中央民族大学越南语专业、北京大学东方语言学系等，以越南语翻译为根基，提供越—中、越—英、中—英等 20+ 语种的笔译、口译、同声传译及网站本地化服务。</view>
+  </view>
+
+  <!-- 译员背景 -->
+  <view class="section card">
+    <view class="sec-title">译员背景</view>
+    <view class="cred-list">
+      <view class="cred-item" wx:for="{{credentials}}" wx:key="*this">
+        <text class="cred-dot">·</text>
+        <text class="cred-text">{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 联系方式 -->
+  <view class="section card">
+    <view class="sec-title">联系我们</view>
+
+    <view class="contact-item" bindtap="onCall">
+      <view class="ci-icon">📞</view>
+      <view class="ci-body">
+        <view class="ci-label">联系电话</view>
+        <view class="ci-value">{{phone}}</view>
+      </view>
+      <view class="ci-arrow">›</view>
+    </view>
+
+    <view class="contact-item" bindtap="onCopyWechat">
+      <view class="ci-icon">💬</view>
+      <view class="ci-body">
+        <view class="ci-label">微信</view>
+        <view class="ci-value">{{wechat}}</view>
+      </view>
+      <view class="ci-arrow">复制</view>
+    </view>
+
+    <view class="contact-item" bindtap="onCopyEmail">
+      <view class="ci-icon">✉️</view>
+      <view class="ci-body">
+        <view class="ci-label">电子邮箱</view>
+        <view class="ci-value">{{email}}</view>
+      </view>
+      <view class="ci-arrow">复制</view>
+    </view>
+
+    <view class="contact-item" bindtap="onOpenLocation">
+      <view class="ci-icon">📍</view>
+      <view class="ci-body">
+        <view class="ci-label">公司地址</view>
+        <view class="ci-value">{{address}}</view>
+      </view>
+      <view class="ci-arrow">›</view>
+    </view>
+  </view>
+
+  <button class="btn-call" bindtap="onCall">📞 立即咨询</button>
+
+  <view class="copyright">© 2011–2026 南宁市悦迅翻译有限公司</view>
+</view>

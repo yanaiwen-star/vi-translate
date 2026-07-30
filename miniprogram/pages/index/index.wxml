@@ -1,0 +1,259 @@
+<!--pages/index/index.wxml - 同传主页面（对齐 www.yuexunfanyi.com 实时同传手机版）+ 拍照翻译 -->
+<view class="app-shell mode-{{mode}}">
+
+  <!-- 顶部：模式切换 + 状态 -->
+  <view class="topbar">
+    <view class="mode-tabs">
+      <view class="mode-tab {{mode === 'voice' ? 'active' : ''}}" bindtap="onSetMode" data-mode="voice">同传</view>
+      <view class="mode-tab {{mode === 'face' ? 'active' : ''}}" bindtap="onSetMode" data-mode="face">面对面</view>
+      <view class="mode-tab {{mode === 'photo' ? 'active' : ''}}" bindtap="onSetMode" data-mode="photo">拍照翻译</view>
+      <view class="mode-tab {{mode === 'text' ? 'active' : ''}}" bindtap="onSetMode" data-mode="text">文字翻译</view>
+    </view>
+    <view class="status-pill">
+      <view class="status-dot {{statusState}}"></view>
+      <text class="status-text">{{statusText}}</text>
+    </view>
+  </view>
+
+  <!-- 拍照翻译面板（原摄像头位置） -->
+  <view wx:if="{{mode === 'photo'}}" class="photo-panel">
+    <!-- 语种选择 -->
+    <view class="mini-lang-group">
+      <view class="field">
+        <text class="field-label">源语言</text>
+        <picker mode="selector" range="{{sourceLangs}}" range-key="label" value="{{photoSourceIndex}}" bindchange="onPhotoSourceLang">
+          <view class="picker">{{sourceLangs[photoSourceIndex].label}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="field-label">目标语言</text>
+        <picker mode="selector" range="{{targetLangs}}" range-key="label" value="{{photoTargetIndex}}" bindchange="onPhotoTargetLang">
+          <view class="picker">{{targetLangs[photoTargetIndex].label}}</view>
+        </picker>
+      </view>
+    </view>
+    <button class="photo-shoot {{photoLoading ? 'loading' : ''}}" bindtap="onPhotoTranslate" disabled="{{photoLoading}}">
+      {{photoLoading ? '⏳ 识别中...' : '📷 拍照 / 选图翻译'}}
+    </button>
+    <view class="photo-result">
+      <view class="photo-card">
+        <view class="panel-label">原文</view>
+        <scroll-view scroll-y class="photo-text {{photoSource ? '' : 'placeholder'}}">
+          <text class="line" user-select="true">{{photoSource || '点击下方按钮拍照或选择图片，识别其中的文字。'}}</text>
+        </scroll-view>
+      </view>
+      <view class="photo-card translation-card">
+        <view class="panel-label">译文</view>
+        <scroll-view scroll-y class="photo-text translation {{photoTranslation ? '' : 'placeholder'}}">
+          <text class="line" user-select="true">{{photoTranslation || '译文将显示在这里。'}}</text>
+        </scroll-view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 文本翻译面板（手动输入文字） -->
+  <view wx:if="{{mode === 'text'}}" class="text-panel">
+    <!-- 语种选择 -->
+    <view class="mini-lang-group">
+      <view class="field">
+        <text class="field-label">源语言</text>
+        <picker mode="selector" range="{{sourceLangs}}" range-key="label" value="{{textSourceIndex}}" bindchange="onTextSourceLang">
+          <view class="picker">{{sourceLangs[textSourceIndex].label}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="field-label">目标语言</text>
+        <picker mode="selector" range="{{targetLangs}}" range-key="label" value="{{textTargetIndex}}" bindchange="onTextTargetLang">
+          <view class="picker">{{targetLangs[textTargetIndex].label}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <!-- 源文本输入 -->
+    <view class="photo-card">
+      <view class="panel-label">原文（可手动输入）</view>
+      <textarea class="text-input" value="{{textInput}}" bindinput="onTextInput" placeholder="在此输入或粘贴要翻译的文字…" maxlength="5000" auto-height="{{false}}" />
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="text-actions">
+      <button class="primary-action" bindtap="onTextTranslate" disabled="{{textLoading}}">{{textLoading ? '翻译中...' : '翻译'}}</button>
+      <button class="secondary-button" bindtap="onClearText">清空</button>
+    </view>
+
+    <!-- 译文 -->
+    <view class="photo-card translation-card">
+      <view class="panel-label">译文</view>
+      <scroll-view scroll-y class="photo-text translation {{textTranslation ? '' : 'placeholder'}}">
+        <text class="line" user-select="true">{{textTranslation || '译文将显示在这里。'}}</text>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 面对面面板（双话筒·一人一句 PTT，内联；上对话框 180° 翻转给对方看） -->
+  <view wx:if="{{mode === 'face'}}" class="face-panel">
+    <!-- 上话筒（对方 peer） -->
+    <view class="face-mic-row">
+      <view class="face-mic-btn peer {{faceActiveSide === 'peer' ? 'recording' : ''}} {{faceActiveSide && faceActiveSide !== 'peer' ? 'disabled' : ''}}"
+            data-side="peer" bindtouchstart="onFaceMicDown" bindtouchend="onFaceMicUp" bindtouchcancel="onFaceMicUp" hover-class="face-mic-press">
+        <text class="face-mic-icon">🎙</text>
+      </view>
+      <view class="face-mic-tag">{{facePeerLabel}}·按住说</view>
+    </view>
+
+    <!-- 上对话框（对方视角，180°翻转，显示对方语言 peerLang） -->
+    <view class="face-box face-box-top">
+      <scroll-view scroll-y class="face-box-body" scroll-into-view="{{faceTopView}}" scroll-with-animation>
+        <block wx:if="{{faceTurns.length || faceCurActive}}">
+          <view wx:for="{{faceTurns}}" wx:key="id" class="face-bubble-row">
+            <view class="face-bubble {{item.side === 'peer' ? 'own' : 'trans'}}">{{item.side === 'mine' ? item.tgt : item.src}}</view>
+          </view>
+          <view wx:if="{{faceCurActive && (faceCur.side === 'mine' ? faceCur.tgt : faceCur.src)}}" class="face-bubble-row">
+            <view class="face-bubble {{faceCur.side === 'peer' ? 'own' : 'trans'}} draft">{{faceCur.side === 'mine' ? faceCur.tgt : faceCur.src}}</view>
+          </view>
+        </block>
+        <view wx:else class="face-empty">对方按住上方话筒说{{facePeerLabel}}</view>
+        <view id="fte{{faceTick}}" class="face-anchor"></view>
+      </scroll-view>
+    </view>
+
+    <!-- 中间：语种选择 + 互换 -->
+    <view class="face-lang-bar">
+      <view class="face-lang-pill" bindtap="onFaceToggleSettings">{{faceMyLabel}}</view>
+      <view class="face-lang-swap" bindtap="onFaceSwapLangs">⇄</view>
+      <view class="face-lang-pill alt" bindtap="onFaceToggleSettings">{{facePeerLabel}}</view>
+    </view>
+
+    <!-- 下对话框（我的视角，显示我的语言 myLang） -->
+    <view class="face-box face-box-bottom">
+      <scroll-view scroll-y class="face-box-body" scroll-into-view="{{faceBottomView}}" scroll-with-animation>
+        <block wx:if="{{faceTurns.length || faceCurActive}}">
+          <view wx:for="{{faceTurns}}" wx:key="id" class="face-bubble-row">
+            <view class="face-bubble {{item.side === 'mine' ? 'own' : 'trans'}}">{{item.side === 'mine' ? item.src : item.tgt}}</view>
+          </view>
+          <view wx:if="{{faceCurActive && (faceCur.side === 'mine' ? faceCur.src : faceCur.tgt)}}" class="face-bubble-row">
+            <view class="face-bubble {{faceCur.side === 'mine' ? 'own' : 'trans'}} draft">{{faceCur.side === 'mine' ? faceCur.src : faceCur.tgt}}</view>
+          </view>
+        </block>
+        <view wx:else class="face-empty">按住下方话筒说{{faceMyLabel}}</view>
+        <view id="fbe{{faceTick}}" class="face-anchor"></view>
+      </scroll-view>
+    </view>
+
+    <!-- 下话筒（我 mine） + 音量 + 清空 -->
+    <view class="face-mic-row">
+      <view class="face-mic-btn mine {{faceActiveSide === 'mine' ? 'recording' : ''}} {{faceActiveSide && faceActiveSide !== 'mine' ? 'disabled' : ''}}"
+            data-side="mine" bindtouchstart="onFaceMicDown" bindtouchend="onFaceMicUp" bindtouchcancel="onFaceMicUp" hover-class="face-mic-press">
+        <text class="face-mic-icon">🎙</text>
+      </view>
+      <view class="face-mic-tag">{{faceMyLabel}}·按住说</view>
+      <view class="face-vol"><view class="face-vol-fill" style="width: {{levelPct}}%"></view></view>
+      <view class="face-clear-btn" bindtap="onFaceClear" wx:if="{{faceTurns.length}}">清空</view>
+    </view>
+
+    <!-- 设置 modal：两个语种选择 -->
+    <view wx:if="{{faceShowSettings}}" class="face-mask" bindtap="onFaceSettingsClose">
+      <view class="face-card" catchtap="faceNoop">
+        <view class="face-card-title">设置语种</view>
+        <view class="face-set-row">
+          <text class="face-set-label">我说的（下话筒）</text>
+          <picker mode="selector" range="{{faceLangOptions}}" range-key="label" value="{{faceMyIndex}}" bindchange="onFaceChangeMyLang">
+            <view class="face-set-value">{{faceLangOptions[faceMyIndex].label}}</view>
+          </picker>
+        </view>
+        <view class="face-set-row">
+          <text class="face-set-label">对方说的（上话筒）</text>
+          <picker mode="selector" range="{{faceLangOptions}}" range-key="label" value="{{facePeerIndex}}" bindchange="onFaceChangePeerLang">
+            <view class="face-set-value">{{faceLangOptions[facePeerIndex].label}}</view>
+          </picker>
+        </view>
+        <view class="face-set-hint">中间 ⇄ 可一键互换两种语言</view>
+        <button class="face-card-btn" bindtap="onFaceSettingsClose">完成</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 工作区：原文 + 译文 双面板（语音翻译模式） -->
+  <view wx:if="{{mode === 'voice'}}" class="workspace voice-workspace">
+    <view class="panel voice-panel">
+      <view class="panel-label">原文</view>
+      <scroll-view scroll-y scroll-top="{{sourceScrollTop}}" scroll-with-animation="{{false}}" class="live-text {{sourceLines.length || sourceDraft ? '' : 'placeholder'}}">
+        <block wx:for="{{sourceLines}}" wx:key="*this">
+          <text class="line" user-select="true">{{item}}</text>
+        </block>
+        <text wx:if="{{sourceDraft}}" class="line draft" user-select="true">{{sourceDraft}}</text>
+        <view wx:if="{{sourceLines.length === 0 && !sourceDraft}}" class="ph">点击「开始」后，对着麦克风说话。</view>
+      </scroll-view>
+    </view>
+
+    <view class="panel voice-panel translation-panel">
+      <view class="panel-label">译文</view>
+      <scroll-view scroll-y scroll-top="{{translationScrollTop}}" scroll-with-animation="{{false}}" class="live-text translation-text {{translationLines.length || translationDraft ? '' : 'placeholder'}}">
+        <block wx:for="{{translationLines}}" wx:key="*this">
+          <text class="line" user-select="true">{{item}}</text>
+        </block>
+        <text wx:if="{{translationDraft}}" class="line draft" user-select="true">{{translationDraft}}</text>
+        <view wx:if="{{translationLines.length === 0 && !translationDraft}}" class="ph">译文将显示在这里。</view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 动作按钮（语音翻译模式） -->
+  <view wx:if="{{mode === 'voice'}}" class="action-group">
+    <button class="primary-action" bindtap="onStart" disabled="{{running}}">开始</button>
+    <button class="danger-action" bindtap="onStop" disabled="{{!running}}">停止</button>
+    <button class="secondary-button" bindtap="onClear">清空</button>
+  </view>
+
+  <!-- 控制区（语音翻译模式） -->
+  <view wx:if="{{mode === 'voice'}}" class="controls">
+    <view class="control-group language-group">
+      <view class="field">
+        <text class="field-label">源语言</text>
+        <picker mode="selector" range="{{sourceLangs}}" range-key="label" value="{{sourceIndex}}" bindchange="onSourceLang">
+          <view class="picker">{{sourceLangs[sourceIndex].label}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="field-label">目标语言</text>
+        <picker mode="selector" range="{{targetLangs}}" range-key="label" value="{{targetIndex}}" bindchange="onTargetLang">
+          <view class="picker">{{targetLangs[targetIndex].label}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="control-group output-group">
+      <view class="field">
+        <text class="field-label">区域</text>
+        <picker mode="selector" range="{{regions}}" range-key="label" value="{{regionIndex}}" bindchange="onRegion">
+          <view class="picker">{{regions[regionIndex].label}}</view>
+        </picker>
+      </view>
+      <view class="field">
+        <text class="field-label">发音人</text>
+        <picker mode="selector" range="{{voices}}" value="{{voiceIndex}}" bindchange="onVoice">
+          <view class="picker">{{voices[voiceIndex]}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="control-group visual-group">
+      <view class="field">
+        <text class="field-label">声音克隆</text>
+        <picker mode="selector" range="{{voiceCloneModes}}" range-key="label" value="{{voiceCloneIndex}}" bindchange="onVoiceClone">
+          <view class="picker">{{voiceCloneModes[voiceCloneIndex].label}}</view>
+        </picker>
+      </view>
+      <view class="switch-field">
+        <text class="field-label">语音输出</text>
+        <switch checked="{{audioEnabled}}" bindchange="onToggleAudio" color="#07C160" />
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部：音量条（语音翻译模式） -->
+  <view wx:if="{{mode === 'voice'}}" class="meter-row">
+    <view class="meter"><view class="levelBar" style="width:{{levelPct}}%"></view></view>
+  </view>
+
+</view>

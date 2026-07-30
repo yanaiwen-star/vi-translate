@@ -1,0 +1,54 @@
+<view class="page directory-page">
+  <view class="hero-card">
+    <view class="hero-title">免费找翻译</view>
+    <view class="hero-sub">译员与翻译公司永久免费入驻 · 平台不收费、不代收翻译费</view>
+  </view>
+
+  <view class="search-row">
+    <input class="search-input" value="{{keyword}}" placeholder="搜索译员、城市或服务" confirm-type="search" bindinput="onKeywordInput" bindconfirm="onSearch" />
+    <button class="search-btn" bindtap="onSearch">搜索</button>
+    <button class="filter-btn" bindtap="onToggleFilters">筛选</button>
+  </view>
+
+  <scroll-view class="language-scroll" scroll-x enable-flex>
+    <view class="language-row">
+      <view wx:for="{{languages}}" wx:key="code" class="language-chip {{language === item.code ? 'active' : ''}}" data-code="{{item.code}}" bindtap="onChooseLanguage">{{item.label}}</view>
+    </view>
+  </scroll-view>
+
+  <view class="filter-panel" wx:if="{{showFilters}}">
+    <view class="filter-line">
+      <text class="filter-label">国家</text>
+      <picker range="{{countries}}" range-key="label" bindchange="onCountryChange"><view class="picker-value">{{country || '不限国家'}} ›</view></picker>
+    </view>
+    <view class="filter-line"><text class="filter-label">城市</text><input class="filter-input" value="{{city}}" placeholder="例如：南宁、Hà Nội" bindinput="onCityInput" /></view>
+    <view class="filter-line">
+      <text class="filter-label">服务</text>
+      <picker range="{{services}}" range-key="label" bindchange="onServiceChange"><view class="picker-value">{{service || '不限服务'}} ›</view></picker>
+    </view>
+    <view class="option-row"><text class="filter-label">方式</text><view class="mini-chip {{mode === '' ? 'active' : ''}}" data-code="" bindtap="onModeChange">不限</view><view class="mini-chip {{mode === 'online' ? 'active' : ''}}" data-code="online" bindtap="onModeChange">线上</view><view class="mini-chip {{mode === 'offline' ? 'active' : ''}}" data-code="offline" bindtap="onModeChange">线下</view></view>
+    <view class="option-row"><text class="filter-label">主体</text><view class="mini-chip {{subjectType === '' ? 'active' : ''}}" data-code="" bindtap="onSubjectChange">不限</view><view class="mini-chip {{subjectType === 'individual' ? 'active' : ''}}" data-code="individual" bindtap="onSubjectChange">个人</view><view class="mini-chip {{subjectType === 'company' ? 'active' : ''}}" data-code="company" bindtap="onSubjectChange">公司</view></view>
+    <view class="filter-actions"><button class="ghost-action" bindtap="onResetFilters">重置</button><button class="primary-action" bindtap="onApplyFilters">查看结果</button></view>
+  </view>
+
+  <view class="result-meta" wx:if="{{!loading && !error}}">找到 {{total}} 条资料 · 越南语优先展示</view>
+
+  <view class="state-card" wx:if="{{loading}}"><view class="spinner"></view><text>正在加载译员资料…</text></view>
+  <view class="state-card error" wx:elif="{{error}}"><text>{{error}}</text><button bindtap="onRetry">重新加载</button></view>
+  <view class="state-card" wx:elif="{{profiles.length === 0}}"><text>暂时没有符合条件的译员</text><button bindtap="onJoin">免费入驻</button></view>
+
+  <view class="profile-list" wx:else>
+    <view class="profile-card" wx:for="{{profiles}}" wx:key="id" data-id="{{item.id}}" bindtap="onOpenProfile">
+      <view class="example-badge" wx:if="{{item.is_example}}">{{item.exampleLabel}}</view>
+      <view class="profile-head"><view class="avatar">{{item.subject_type === 'company' ? '译' : '语'}}</view><view class="profile-main"><view class="name-line"><text class="profile-name">{{item.display_name}}</text><text class="subject-badge">{{item.subjectLabel}}</text></view><view class="location">{{item.country_code}} · {{item.city || '线上服务'}} · {{item.modeLabel}}</view></view></view>
+      <view class="tag-row"><text class="tag language" wx:for="{{item.languageLabels}}" wx:for-item="label" wx:key="*this">{{label}}</text></view>
+      <view class="tag-row"><text class="tag" wx:for="{{item.serviceLabels}}" wx:for-item="label" wx:key="*this">{{label}}</text></view>
+      <view class="bio">{{item.bio}}</view>
+      <view class="card-foot"><text class="verify {{item.verification_status === 'verified' ? 'verified' : ''}}">{{item.verificationLabel}}</text><text class="view-link">查看资料 ›</text></view>
+    </view>
+    <view class="loading-more" wx:if="{{loadingMore}}">正在加载更多…</view>
+    <view class="list-end" wx:elif="{{!hasMore}}">没有更多了</view>
+  </view>
+
+  <button class="join-button" bindtap="onJoin">＋ 免费入驻</button>
+</view>

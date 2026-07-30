@@ -1,0 +1,5 @@
+<!--components/lang-badge/lang-badge.wxml-->
+<view class="badge {{small ? 'small' : ''}} lang-{{lang}}">
+  <text class="flag">{{flag}}</text>
+  <text class="name">{{name}}</text>
+</view>

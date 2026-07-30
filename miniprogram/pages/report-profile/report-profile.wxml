@@ -1,0 +1,6 @@
+<view class="report-page">
+  <view class="notice">举报达到风险阈值后，资料会自动暂时隐藏。请如实选择原因，不要填写电话、微信或邮箱。</view>
+  <view class="card"><view class="title">举报原因</view><view wx:for="{{reasons}}" wx:key="code" class="reason {{reason === item.code ? 'active' : ''}}" data-code="{{item.code}}" bindtap="onReason"><text>{{item.label}}</text><text>{{reason === item.code ? '✓' : ''}}</text></view></view>
+  <view class="card"><view class="title">补充说明（选填）</view><input maxlength="120" value="{{note}}" placeholder="最多120字，请勿填写联系方式" bindinput="onNoteInput" /></view>
+  <button class="submit" loading="{{submitting}}" disabled="{{submitting}}" bindtap="onSubmit">提交举报</button>
+</view>

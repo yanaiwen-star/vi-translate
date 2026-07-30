@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>账号 · 月讯翻译</title>
+  <style>
+    :root { --green: #18a058; --green-dark: #0e7c40; --bg: #f5f7f6; --card: #fff; --text: #1f2329; --muted: #8a9099; --border: #e6e9ec; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); }
+    .wrap { max-width: 480px; margin: 0 auto; padding: 24px 16px; }
+    h1 { font-size: 20px; margin: 8px 0 20px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .label { color: var(--muted); font-size: 14px; }
+    .value { font-size: 15px; font-weight: 600; }
+    .field { display: flex; gap: 10px; margin-top: 12px; }
+    input { flex: 1; padding: 11px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; outline: none; }
+    input:focus { border-color: var(--green); }
+    button { border: none; border-radius: 8px; background: var(--green); color: #fff; padding: 11px 16px; font-size: 15px; cursor: pointer; white-space: nowrap; }
+    button:disabled { background: #b6d8c4; cursor: not-allowed; }
+    button.ghost { background: #eef5f0; color: var(--green-dark); }
+    .msg { margin-top: 12px; font-size: 13px; min-height: 18px; }
+    .msg.ok { color: var(--green-dark); }
+    .msg.err { color: #d03050; }
+    a.back { color: var(--green); text-decoration: none; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="/">&larr; 返回首页</a>
+    <h1>账号设置</h1>
+
+    <div class="card">
+      <div class="row">
+        <span class="label">登录邮箱</span>
+        <span class="value" id="email">—</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="label">微信账号</span>
+        <span class="value">小程序与网页自动互通</span>
+      </div>
+      <div class="msg" id="msg"></div>
+    </div>
+  </div>
+
+  <script>
+    const TOKEN_KEY = 'vt_token';
+    const $ = (id) => document.getElementById(id);
+
+    function token() { return localStorage.getItem(TOKEN_KEY) || ''; }
+
+    function setMsg(text, kind) {
+      const el = $('msg');
+      el.textContent = text || '';
+      el.className = 'msg' + (kind ? ' ' + kind : '');
+    }
+
+    async function load() {
+      const t = token();
+      if (!t) { setMsg('请先登录', 'err'); return; }
+      try {
+        const r = await fetch('/auth/me', { headers: { Authorization: 'Bearer ' + t } });
+        if (!r.ok) { setMsg('登录已过期，请重新登录', 'err'); return; }
+        const u = await r.json();
+        $('email').textContent = u.email || '—';
+      } catch (e) { setMsg('网络错误', 'err'); }
+    }
+
+    load();
+  </script>
+</body>
+</html>

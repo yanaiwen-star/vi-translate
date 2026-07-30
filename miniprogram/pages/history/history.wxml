@@ -1,0 +1,78 @@
+<!--pages/history/history.wxml-->
+<view class="page">
+  <!-- 列表视图 -->
+  <block wx:if="{{!selectedSession}}">
+    <view class="empty" wx:if="{{!loading && sessions.length === 0}}">
+      <view class="empty-icon">📭</view>
+      <view class="empty-text">暂无历史会话</view>
+      <view class="empty-sub">开始同传后会自动保存</view>
+    </view>
+
+    <view class="session-list">
+      <view
+        class="session-item card"
+        wx:for="{{sessions}}"
+        wx:key="_id"
+        data-id="{{item._id}}"
+        bindtap="onSelectSession"
+        bindlongpress="onDeleteSession">
+        <view class="session-header">
+          <text class="session-title ellipsis">{{item.title || '未命名会话'}}</text>
+          <text class="session-time">{{item.updatedAtText}}</text>
+        </view>
+        <view class="session-preview ellipsis">
+          {{item.previewText || '（无内容）'}}
+        </view>
+        <view class="session-footer">
+          <view class="session-stats">
+            <text class="stat-icon">💬</text>
+            <text class="stat-text">{{item.messageCount || 0}} 条</text>
+          </view>
+          <view class="session-arrow">›</view>
+        </view>
+      </view>
+    </view>
+  </block>
+
+  <!-- 详情视图 -->
+  <block wx:if="{{selectedSession}}">
+    <view class="detail-header">
+      <view class="back-btn" bindtap="onCloseDetail">
+        <text>‹ 返回</text>
+      </view>
+      <view class="detail-title ellipsis">{{selectedSession.title}}</view>
+      <view class="placeholder"></view>
+    </view>
+
+    <scroll-view class="detail-messages" scroll-y>
+      <view wx:if="{{messages.length === 0}}" class="empty">
+        <view class="empty-icon">📭</view>
+        <view class="empty-text">该会话暂无消息</view>
+      </view>
+
+      <view
+        wx:for="{{messages}}"
+        wx:key="_id"
+        class="msg-row {{item.sourceLang === 'zh' ? 'msg-zh' : 'msg-vie'}} fade-in">
+        <view class="msg-card">
+          <view class="msg-lang">
+            <lang-badge lang="{{item.sourceLang}}" small />
+            <text class="msg-arrow">→</text>
+            <lang-badge lang="{{item.targetLang}}" small />
+          </view>
+          <view class="msg-source">
+            <text class="msg-label">原文</text>
+            <text class="msg-text">{{item.sourceText}}</text>
+          </view>
+          <view class="msg-target">
+            <text class="msg-label">译文</text>
+            <text class="msg-text">{{item.targetText}}</text>
+          </view>
+          <view class="msg-time">{{item.createdAtText}}</view>
+        </view>
+      </view>
+
+      <view class="chat-spacer"></view>
+    </scroll-view>
+  </block>
+</view>

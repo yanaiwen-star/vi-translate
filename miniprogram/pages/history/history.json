@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "历史记录",
+  "navigationBarBackgroundColor": "#0D7C5C",
+  "navigationBarTextStyle": "white",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "lang-badge": "/components/lang-badge/lang-badge"
+  }
+}

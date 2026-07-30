@@ -1,0 +1,25 @@
+<!--pages/set-nickname/set-nickname.wxml-->
+<view class="page">
+  <view class="card">
+    <view class="title">请先设置昵称</view>
+    <view class="subtitle">为保证您能在「我的」页面与翻译历史里被正确识别，悦迅翻译需要您设置一个唯一的昵称。{{reason ? ' ' + reason : ''}}</view>
+
+    <view class="form-item">
+      <text class="label">昵称</text>
+      <input
+        class="input"
+        type="nickname"
+        placeholder="建议用真实姓名或公司名（1-20 字）"
+        maxlength="20"
+        value="{{draft}}"
+        bindinput="onInput"
+        bind:nickname="onWechatNickname"
+      />
+    </view>
+
+    <view class="hint">昵称全局唯一；已被他人占用时会提示，换一个再试。</view>
+
+    <button class="btn-confirm" bindtap="onSave" disabled="{{!draft || saving}}">{{saving ? '保存中…' : '保存'}}</button>
+    <view class="link" bindtap="onBack" wx:if="{{allowBack}}">暂不设置</view>
+  </view>
+</view>

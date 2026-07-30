@@ -1,0 +1,28 @@
+<view class="edit-page">
+  <view class="state" wx:if="{{loading}}">正在加载资料…</view>
+  <block wx:else>
+    <view class="free-banner"><view class="free-title">永久免费入驻</view><view>无会员、无广告、无线索收费，平台不参与交易。</view></view>
+    <view class="error" wx:if="{{saveError}}">{{saveError}}</view>
+    <view class="form-card">
+      <view class="section-title">公开资料</view>
+      <view class="choice-row"><text>主体类型</text><view class="chip {{subjectType === 'individual' ? 'active' : ''}}" data-code="individual" bindtap="onSubjectChange">个人译员</view><view class="chip {{subjectType === 'company' ? 'active' : ''}}" data-code="company" bindtap="onSubjectChange">翻译公司</view></view>
+      <view class="field"><text>名称</text><input data-field="displayName" maxlength="40" value="{{displayName}}" placeholder="公开昵称或公司简称" bindinput="onTextInput" /></view>
+      <view class="field"><text>国家代码</text><input data-field="countryCode" maxlength="2" value="{{countryCode}}" placeholder="CN 或 VN" bindinput="onTextInput" /></view>
+      <view class="field"><text>城市</text><input data-field="city" maxlength="40" value="{{city}}" placeholder="例如：南宁、Hà Nội" bindinput="onTextInput" /></view>
+      <view class="field block"><text>简介</text><textarea data-field="bio" maxlength="500" value="{{bio}}" placeholder="介绍经验和擅长场景，请勿填写联系方式" bindinput="onTextInput"></textarea></view>
+      <view class="field block"><text>服务方式</text><view class="choices"><view class="chip {{serviceMode === 'online' ? 'active' : ''}}" data-code="online" bindtap="onModeChange">线上</view><view class="chip {{serviceMode === 'offline' ? 'active' : ''}}" data-code="offline" bindtap="onModeChange">线下</view><view class="chip {{serviceMode === 'both' ? 'active' : ''}}" data-code="both" bindtap="onModeChange">均可</view></view></view>
+      <view class="field block"><text>服务语种</text><view class="choices"><view wx:for="{{languages}}" wx:key="code" class="chip {{item.selected ? 'active' : ''}}" data-code="{{item.code}}" bindtap="onToggleLanguage">{{item.label}}</view></view></view>
+      <view class="field block"><text>服务类型</text><view class="choices"><view wx:for="{{services}}" wx:key="code" class="chip {{item.selected ? 'active' : ''}}" data-code="{{item.code}}" bindtap="onToggleService">{{item.label}}</view></view></view>
+    </view>
+    <view class="form-card contact-card">
+      <view class="section-title">联系方式默认隐藏</view><view class="hint">只有你同意申请后，对方才能限时查看。全部选填。</view>
+      <view class="field"><text>微信</text><input data-field="wechat" maxlength="40" value="{{wechat}}" placeholder="选填" bindinput="onTextInput" /></view>
+      <view class="field"><text>电话</text><input data-field="phone" maxlength="30" value="{{phone}}" placeholder="选填" bindinput="onTextInput" /></view>
+      <view class="field"><text>邮箱</text><input data-field="email" maxlength="80" value="{{email}}" placeholder="选填" bindinput="onTextInput" /></view>
+    </view>
+    <view class="form-card verify-card" bindtap="onVerification"><view><view class="section-title">实名认证（自愿）</view><view class="hint">未认证也可正常入驻和展示</view></view><text>暂未开放 ›</text></view>
+    <checkbox-group bindchange="onAgreementChange"><label class="agreement"><checkbox value="agree" checked="{{agreed}}" color="#07c160" /><text>我确认资料真实、合法，并有权公开展示</text></label></checkbox-group>
+    <button class="save" loading="{{saving}}" disabled="{{saving}}" bindtap="onSave">保存并展示</button>
+    <view class="owner-actions" wx:if="{{existing}}"><button bindtap="onToggleStatus">{{status === 'active' ? '暂停展示' : '恢复展示'}}</button><button class="danger" bindtap="onDelete">删除资料</button></view>
+  </block>
+</view>

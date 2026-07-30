@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>支付 · vi-translate</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'PingFang SC', system-ui, sans-serif;
+    background: radial-gradient(1000px 500px at 50% -10%, #09BC6E 0%, transparent 55%), #f5f7fa; }
+  .glass { background: rgba(255,255,255,.9); backdrop-filter: blur(16px); }
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+  <div class="glass w-full max-w-md rounded-3xl shadow-2xl p-8 text-center">
+    <div class="text-2xl font-semibold text-gray-900">微信支付</div>
+    <div id="planName" class="text-gray-500 mt-1 text-sm"></div>
+    <div id="planMinutes" class="text-gray-400 mt-1 text-xs"></div>
+    <div id="amount" class="text-3xl font-bold text-[#07C160] my-4"></div>
+
+    <div id="qrWrap" class="hidden">
+      <div id="qr" class="mx-auto w-[240px] h-[240px] rounded-2xl bg-white grid place-items-center shadow-inner"></div>
+      <div class="text-gray-500 text-sm mt-3">微信扫一扫 / 长按识别，在小程序中完成支付</div>
+    </div>
+    <div id="h5Wrap" class="hidden">
+      <a id="h5Link" href="#" class="inline-block mt-4 px-6 py-3 rounded-xl bg-[#07C160] text-white font-medium hover:opacity-90">点击前往支付</a>
+      <div class="text-gray-500 text-sm mt-3">将在浏览器中跳转至微信完成付款</div>
+    </div>
+
+    <div id="ok" class="hidden text-[#07C160] font-semibold text-lg mt-4">支付成功，正在进入工作台…</div>
+    <div id="msg" class="text-red-500 text-sm mt-4 min-h-[20px]"></div>
+    <a href="/pricing.html" class="inline-block mt-6 text-sm text-gray-400 hover:underline">返回套餐</a>
+  </div>
+<script>
+  // 微信 OAuth 回调会把 vt_token 写入 cookie，这里同步到 localStorage 供鉴权使用
+  (function () {
+    const m = document.cookie.match(/(?:^|;\s*)vt_token=([^;]+)/);
+    if (m) {
+      const t = decodeURIComponent(m[1]);
+      if (t) localStorage.setItem('vt_token', t);
+    }
+  })();
+
+  const token = localStorage.getItem('vt_token');
+  if (!token) location.href = '/login.html';
+  const params = new URLSearchParams(location.search);
+  const planId = params.get('plan');
+  const $ = (id) => document.getElementById(id);
+
+  function isWeChat() { return /MicroMessenger/i.test(navigator.userAgent); }
+
+  function getMpOpenid() {
+    const m = document.cookie.match(/(?:^|;\s*)mp_openid=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+
+  async function ensureMpOpenid() {
+    const o = getMpOpenid();
+    if (o) return o;
+    const r = await fetch('/api/wx/mp_oauth_start?redirect=' + encodeURIComponent(location.href));
+    const j = await r.json();
+    if (j.url) location.href = j.url;
+    return null; // 页面将在授权后重新加载
+  }
+
+  async function main() {
+    if (!planId) { $('msg').textContent = '缺少套餐参数'; return; }
+    const plans = await (await fetch('/billing/plans')).json();
+    const plan = plans.find(p => p.id === planId);
+    if (!plan) { $('msg').textContent = '套餐不存在'; return; }
+    $('planName').textContent = plan.name + ' 时长包';
+    if (plan.chars_per_period) $('planMinutes').textContent = '含 ' + plan.chars_per_period + ' 分钟 · 长期有效';
+    $('amount').textContent = '¥' + (plan.price_cents / 100).toFixed(2);
+
+    let order;
+    try {
+      const r = await fetch(isWeChat() ? '/billing/create_mini_qr_order' : '/billing/create_order', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({
+          plan_id: planId,
+          pay_type: isWeChat() ? 'mini_qr' : 'auto',
+          redirect_url: window.location.origin + '/dialog',
+        }),
+      });
+      order = await r.json();
+      if (!r.ok) { $('msg').textContent = order.detail || '下单失败'; return; }
+    } catch (e) { $('msg').textContent = '网络错误'; return; }
+
+    if (order.qr_data_uri) {
+      // 微信内：展示小程序码，扫码 / 长按识别进小程序支付（绕开未认证服务号限制）
+      $('qrWrap').classList.remove('hidden');
+      $('qr').innerHTML = '<img alt="qr" class="w-[220px] h-[220px]" src="' + order.qr_data_uri + '" />';
+      pollPaid(order.out_trade_no);
+    } else if (order.payment_params) {
+      invokeWxPay(order);
+    } else if (order.code_url) {
+      $('qrWrap').classList.remove('hidden');
+      $('qr').innerHTML = '<img alt="qr" class="w-[220px] h-[220px]" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' +
+        encodeURIComponent(order.code_url) + '" />';
+      pollPaid(order.out_trade_no);
+    } else if (order.h5_url) {
+      $('h5Wrap').classList.remove('hidden');
+      $('h5Link').href = order.h5_url;
+    } else {
+      pollPaid(order.out_trade_no);
+    }
+  }
+
+  function invokeWxPay(order) {
+    const p = order.payment_params;
+    function call() {
+      if (typeof WeixinJSBridge === 'undefined') {
+        document.addEventListener('WeixinJSBridgeReady', call, false);
+      } else {
+        WeixinJSBridge.invoke('getBrandWCPayRequest', {
+          appId: p.appId,
+          timeStamp: p.timeStamp,
+          nonceStr: p.nonceStr,
+          package: p.package,
+          signType: p.signType,
+          paySign: p.paySign,
+        }, function (res) {
+          if (res.err_msg === 'get_brand_wcpay_request:ok') {
+            $('ok').classList.remove('hidden');
+            pollPaid(order.out_trade_no);
+          } else {
+            $('msg').textContent = '支付未完成，可重试。';
+          }
+        });
+      }
+    }
+    call();
+  }
+
+  async function pollPaid(outTradeNo) {
+    for (let i = 0; i < 60; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      try {
+        const j = await (await fetch('/billing/order_status?out_trade_no=' + encodeURIComponent(outTradeNo), { headers: { Authorization: 'Bearer ' + token } })).json();
+        if (j && j.paid) {
+          $('ok').classList.remove('hidden');
+          $('qrWrap').classList.add('hidden');
+          $('h5Wrap').classList.add('hidden');
+          // 支付成功跳到个人中心，确认分钟数到账
+          setTimeout(() => (location.href = '/profile.html'), 1200);
+          return;
+        }
+      } catch (e) { /* ignore */ }
+    }
+    $('msg').textContent = '未检测到支付结果，请稍后在「我的订单」中查看。';
+  }
+  main();
+</script>
+</body></html>

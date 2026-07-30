@@ -1,0 +1,16 @@
+<view class="publish-page">
+  <view class="intro"><view class="intro-title">免费发布翻译业务</view><view class="intro-sub">只填写业务概况，合适的译员可自愿响应</view></view>
+  <view class="privacy">请勿填写电话、微信、证件内容、待翻译原文或其他敏感信息。</view>
+  <view class="form-card">
+    <view class="field"><text class="label">源语言</text><picker range="{{sourceOptions}}" range-key="label" value="{{sourceIndex}}" bindchange="onSourceChange"><view class="picker">{{sourceOptions[sourceIndex].label}} ›</view></picker></view>
+    <view class="field"><text class="label">目标语言</text><picker range="{{targetOptions}}" range-key="label" value="{{targetIndex}}" bindchange="onTargetChange"><view class="picker">{{targetOptions[targetIndex].label}} ›</view></picker></view>
+    <view class="field"><text class="label">业务类型</text><picker range="{{serviceOptions}}" range-key="label" value="{{serviceIndex}}" bindchange="onServiceChange"><view class="picker">{{serviceOptions[serviceIndex].label}} ›</view></picker></view>
+    <view class="field block"><text class="label">服务方式</text><view class="chips"><view class="chip {{mode === 'online' ? 'active' : ''}}" data-code="online" bindtap="onModeChange">线上</view><view class="chip {{mode === 'offline' ? 'active' : ''}}" data-code="offline" bindtap="onModeChange">线下</view><view class="chip {{mode === 'both' ? 'active' : ''}}" data-code="both" bindtap="onModeChange">均可</view></view></view>
+    <view class="field"><text class="label">城市</text><input class="input" maxlength="40" value="{{city}}" placeholder="选填，例如：南宁、河内" bindinput="onCityInput" /></view>
+    <view class="field"><text class="label">服务日期</text><picker mode="date" value="{{serviceAt}}" bindchange="onDateChange"><view class="picker">{{serviceAt || '选填'}} ›</view></picker></view>
+    <view class="field note-field"><text class="label">业务说明</text><textarea class="note-input" maxlength="120" value="{{note}}" placeholder="例如：下周商务会议，需要一名中越口译，预计两小时" bindinput="onNoteInput" /></view>
+    <view class="field"><text class="label">响应人数</text><picker mode="selector" range="{{[1,2,3,4,5]}}" value="{{responseLimit - 1}}" bindchange="onLimitChange"><view class="picker">最多 {{responseLimit}} 人 ›</view></picker></view>
+  </view>
+  <button class="submit" loading="{{submitting}}" disabled="{{submitting}}" bindtap="onSubmit">免费发布</button>
+  <view class="boundary">平台只提供信息连接，不收费、不派单、不代收翻译费；需求将在 7 天后自动删除。</view>
+</view>

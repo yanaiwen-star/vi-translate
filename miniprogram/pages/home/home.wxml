@@ -1,0 +1,82 @@
+<!--pages/home/home.wxml - 悦迅翻译品牌首页-->
+<view class="page">
+
+  <!-- 顶部品牌区 -->
+  <view class="hero">
+    <view class="brand">
+      <view class="logo">悦</view>
+      <view class="brand-text">
+        <view class="brand-name">悦迅翻译</view>
+        <view class="brand-en">Yuexun Translation</view>
+      </view>
+    </view>
+    <view class="hero-slogan">专注于越南语翻译服务的公司</view>
+    <view class="hero-sub">让中越沟通零距离 · Kết nối Trung–Việt không khoảng cách</view>
+
+    <view class="hero-actions">
+      <button class="btn-hero primary" bindtap="goTranslate">🎙️ 免费体验同传</button>
+      <button class="btn-hero ghost" bindtap="onCall">📞 电话咨询</button>
+    </view>
+  </view>
+
+  <!-- 核心数据 -->
+  <view class="stats card">
+    <view class="stat">
+      <view class="stat-num">14<text class="stat-unit">年</text></view>
+      <view class="stat-label">深耕越南语</view>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat">
+      <view class="stat-num">100<text class="stat-unit">+</text></view>
+      <view class="stat-label">专业译员</view>
+    </view>
+    <view class="stat-divider"></view>
+    <view class="stat">
+      <view class="stat-num">20<text class="stat-unit">+</text></view>
+      <view class="stat-label">支持语种</view>
+    </view>
+  </view>
+
+  <!-- 核心服务速览 -->
+  <view class="section">
+    <view class="section-head">
+      <text class="section-title">核心服务</text>
+      <text class="section-more" bindtap="goServices">全部服务 ›</text>
+    </view>
+    <view class="service-grid">
+      <view class="service-card" wx:for="{{services}}" wx:key="id" bindtap="goServices">
+        <view class="service-icon">{{item.icon}}</view>
+        <view class="service-name">{{item.name}}</view>
+        <view class="service-desc">{{item.desc}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 为什么选悦迅 -->
+  <view class="section">
+    <view class="section-head">
+      <text class="section-title">为什么选悦迅</text>
+    </view>
+    <view class="adv-list">
+      <view class="adv-item card" wx:for="{{advantages}}" wx:key="title">
+        <view class="adv-icon">{{item.icon}}</view>
+        <view class="adv-body">
+          <view class="adv-title">{{item.title}}</view>
+          <view class="adv-desc">{{item.desc}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部联系入口 -->
+  <view class="contact-cta card">
+    <view class="cta-title">需要越南语翻译服务？</view>
+    <view class="cta-sub">专业译员 1 对 1 对接，快速报价</view>
+    <view class="cta-actions">
+      <button class="btn-cta primary" bindtap="onCall">📞 {{phone}}</button>
+      <button class="btn-cta ghost" bindtap="onCopyWechat">💬 复制微信</button>
+    </view>
+  </view>
+
+  <view class="footer">南宁市悦迅翻译有限公司 · 广西民族大学北门相思湖畔A区商铺206</view>
+</view>

@@ -1,0 +1,19 @@
+<view class="detail-page">
+  <view class="state" wx:if="{{loading}}">正在加载资料…</view>
+  <view class="state" wx:elif="{{error}}"><text>{{error}}</text><button bindtap="onRetry">重试</button></view>
+  <block wx:elif="{{profile}}">
+    <view class="example" wx:if="{{profile.is_example}}">{{profile.example_label}}</view>
+    <view class="main-card">
+      <view class="head"><view class="avatar">{{profile.subject_type === 'company' ? '译' : '语'}}</view><view><view class="name">{{profile.display_name}}</view><view class="meta">{{profile.subject_type === 'company' ? '翻译公司' : '个人译员'}} · {{profile.country_code}} {{profile.city}}</view></view></view>
+      <view class="verify {{profile.verification_status === 'verified' ? 'ok' : ''}}">{{profile.verificationLabel || '未认证，请自行核实'}}</view>
+      <view class="tags"><text class="tag language" wx:for="{{profile.languageLabels}}" wx:key="*this">{{item}}</text></view>
+      <view class="tags"><text class="tag" wx:for="{{profile.serviceLabels}}" wx:key="*this">{{item}}</text></view>
+      <view class="section-title">服务简介</view><view class="bio">{{profile.bio || '暂未填写'}}</view>
+      <view class="risk">平台仅展示本人填写的信息，不参与议价、收付款或履约。未认证资料请自行核实。</view>
+    </view>
+    <view class="example-action" wx:if="{{profile.is_example}}"><view>示例资料不能申请联系方式</view><button bindtap="onJoin">我是译员，免费入驻</button></view>
+    <button class="contact-button" wx:elif="{{profile.contact_request_allowed}}" bindtap="onShowRequest">申请查看联系方式</button>
+    <view class="report-link" wx:if="{{!profile.is_example}}" bindtap="onReport">举报该资料</view>
+    <view class="request-card" wx:if="{{showRequest}}"><view class="request-title">说明联系用途</view><input maxlength="160" value="{{purpose}}" placeholder="例如：咨询下周商务口译档期" bindinput="onPurposeInput" /><view class="request-tip">请勿在说明中填写自己的电话、微信或邮箱。</view><view class="actions"><button bindtap="onCancelRequest">取消</button><button class="primary" loading="{{requesting}}" bindtap="onRequestContact">提交申请</button></view></view>
+  </block>
+</view>

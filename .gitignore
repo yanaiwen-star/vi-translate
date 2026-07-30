@@ -1,0 +1,154 @@
+# ====================================================
+# vi-translate 项目忽略规则
+# 配套说明见 OWNERS.md（敏感信息集中管理）
+# ====================================================
+
+# ===== 依赖 =====
+node_modules/
+miniprogram_npm/
+jspm_packages/
+
+# ===== 构建产物 =====
+dist/
+unpackage/
+unpackage/dist/
+.nuxt/
+.cache/
+.parcel-cache/
+.next/
+out/
+
+# ===== IDE =====
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+.fleet/
+.cursor/
+
+# ===== CloudBase =====
+.cloudbase/
+.cloudbaserc.json
+.cloudbaserc
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+$RECYCLE.BIN/
+
+# ===== 日志 =====
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===== 小程序本地配置（通常含 appid） =====
+project.private.config.json
+miniprogram/project.private.config.json
+
+# ===== 编译缓存 =====
+.miniprogram/
+**/.mini-cache/
+
+# ===== 临时文件 =====
+tmp/
+temp/
+*.tmp
+*.bak
+
+# ====================================================
+# ⚠️ 敏感信息（绝对不提交）
+# ====================================================
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+OWNERS.md
+OWNERS.md.enc
+**/secrets.json
+**/secret.json
+**/private.key
+**/*.pem
+**/*.key
+**/credentials.json
+docs/CREDENTIALS.md
+
+# 云函数本地依赖（保留 package.json）
+cloudfunctions/*/node_modules/
+cloudfunctions/**/node_modules/
+
+# 用户私有笔记
+docs/private/
+docs/_private/
+NOTES.md
+PRIVATE.md
+TODO.private.md
+
+# Isolated development worktrees
+.worktrees/
+
+# ====================================================
+# Python（缓存/虚拟环境——__pycache__/*.pyc 可能含编译进字节码的真实密钥）
+# ====================================================
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+*.so
+
+# ====================================================
+# 凭证/密钥补充规则（防止 git add -A 误抓；与上方敏感段互补）
+# ====================================================
+**/*credentials*.py
+**/*credentials*.sql
+**/qwen_credentials*
+**/*qwen_credentials*
+
+
+# ====================================================
+# 杂项 / 辅助目录（不入库，保持公开仓库干净）
+# 只保留 miniprogram/(前端) + live-translate/(后端) + 根配置
+# ====================================================
+cloudfunctions/
+docs/
+src/
+_unsorted/
+live-translate-demo/
+_deploy/
+yfl_score_ocr/
+tools/
+scripts/
+
+# ===== 根目录杂项散文件（不影响子目录，如 miniprogram 图标）=====
+/*.ps1
+/*.bat
+/*.png
+/*.jpg
+/*.jpeg
+/*.webp
+/screenshot*
+/demo_screenshot*
+/b721f6*
+/after_notepad*
+/vite.config.ts
+/tsconfig.json
+/retry-notify.js
+/probe_mcp.js
+/package.json
+/package-lock.json
+/init-question-bank.js
+/PLUGIN-INTEGRATION.md
+deploy-with-env.js
+
+# 测试临时目录
+**/.tmp-*

@@ -1,0 +1,67 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/home/home",
+    "pages/services/services",
+    "pages/ask/ask",
+    "pages/business-publish/business-publish",
+    "pages/messages/messages",
+    "pages/translator-detail/translator-detail",
+    "pages/translator-edit/translator-edit",
+    "pages/contact-requests/contact-requests",
+    "pages/my-needs/my-needs",
+    "pages/matched-needs/matched-needs",
+    "pages/report-profile/report-profile",
+    "pages/about/about",
+    "pages/profile/profile",
+    "pages/qwen-settings/qwen-settings",
+    "pages/pricing/pricing",
+    "pages/pay/pay",
+    "pages/set-nickname/set-nickname",
+    "pages/face/face"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#07C160",
+    "navigationBarTitleText": "悦翻译",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f7fa"
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#07C160",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "同传"
+      },
+      {
+        "pagePath": "pages/services/services",
+        "text": "找翻译"
+      },
+      {
+        "pagePath": "pages/ask/ask",
+        "text": "找业务"
+      },
+      {
+        "pagePath": "pages/messages/messages",
+        "text": "常用语"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "componentFramework": "glass-easel",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json",
+  "permission": {
+    "scope.record": {
+      "desc": "用于录制你的语音进行同声传译"
+    }
+  }
+}

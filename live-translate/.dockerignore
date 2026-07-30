@@ -1,0 +1,51 @@
+# --- VCS ---
+.git
+.gitignore
+.github
+
+# --- 文档与本地配置（不进镜像） ---
+*.md
+!README.md
+docs/
+
+# --- 敏感信息（绝对不能进镜像） ---
+.env
+.env.*
+*.pem
+*.key
+secrets/
+
+# --- Python 编译产物 ---
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov/
+
+# --- Node（如有前端构建产物） ---
+**/node_modules
+**/dist
+**/.next
+
+# --- 数据、日志、临时 ---
+*.log
+data/
+deploy/nginx_logs/
+deploy/pgdata/
+deploy/redisdata/
+
+# --- 编辑器/系统 ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# --- 不部署到生产的环境 ---
+live-translate-demo/
+test/
+tests/

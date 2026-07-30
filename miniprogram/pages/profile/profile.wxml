@@ -1,0 +1,72 @@
+<!--pages/profile/profile.wxml-->
+<view class="page">
+  <!-- 用户信息 -->
+  <view class="profile-header">
+    <view class="avatar">🌐</view>
+    <view class="user-info">
+      <view class="user-name">{{nickname || '中越同传用户'}}</view>
+      <view class="user-sub">{{isMember ? '时长包用户' : '免费用户'}}{{openid ? ' · 已登录' : ''}}</view>
+    </view>
+  </view>
+
+  <!-- 今日配额 -->
+  <view class="card quota">
+    <view class="quota-info">
+      <view class="quota-left">今日免费剩余 <text class="num">{{quotaMinutes}}</text> 分钟</view>
+      <view class="quota-sub" wx:if="{{purchasedMinutes > 0}}">已购时长包剩余 <text class="num">{{purchasedMinutes}}</text> 分钟</view>
+    </view>
+    <view class="quota-link" bindtap="onOpenPricing">购买时长包 ›</view>
+  </view>
+
+  <!-- 设置 -->
+  <view class="card settings">
+    <view class="setting-item" bindtap="onEditName">
+      <text class="setting-label">昵称</text>
+      <view class="setting-value">{{nickname || '点击设置'}}<text class="arrow">›</text></view>
+    </view>
+    <view class="setting-item" bindtap="onCopyUserId">
+      <text class="setting-label">我的用户ID</text>
+      <view class="setting-value userId-value">{{userId || '未登录'}}<text class="arrow">›</text></view>
+    </view>
+    <view class="setting-item">
+      <text class="setting-label">绑定手机号</text>
+      <button class="bind-btn" open-type="getPhoneNumber" bindgetphonenumber="onBindPhone">{{phone ? phone : '点击绑定'}}</button>
+    </view>
+    <view class="setting-item" bindtap="onFeedback">
+      <text class="setting-label">意见反馈</text>
+      <text class="arrow">›</text>
+    </view>
+    <view class="setting-item" bindtap="onAbout">
+      <text class="setting-label">关于</text>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 昵称编辑弹层 -->
+  <view class="modal-mask" wx:if="{{editing}}" bindtap="onCancelEdit">
+    <view class="modal" catchtap="noop">
+      <view class="modal-title">设置昵称</view>
+      <input
+        class="modal-input"
+        type="nickname"
+        placeholder="自定义名称，或点此采用微信昵称"
+        maxlength="20"
+        value="{{draftNickname}}"
+        bindinput="onNicknameInput"
+        bind:nickname="onWechatNickname"
+      />
+      <view class="modal-tip">输入框聚焦后，键盘上方会出现「使用微信昵称」可直接回填</view>
+      <view class="modal-actions">
+        <button class="modal-btn cancel" bindtap="onCancelEdit">取消</button>
+        <button class="modal-btn confirm" bindtap="onSaveName">保存</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加入越南语互助群 -->
+  <view class="wechat-group-card" bindtap="onCopyWechatGroup">
+    <view class="wechat-group-title">🌏 加入越南语互助群</view>
+    <view class="wechat-group-desc">添加微信 <text class="wechat-group-id">39446846</text>，备注「越南语」拉你进群</view>
+    <view class="wechat-group-hint">点击复制微信号</view>
+  </view>
+</view>

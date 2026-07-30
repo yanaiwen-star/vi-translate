@@ -1,0 +1,42 @@
+<view class="phrase-page">
+  <view class="hero">
+    <view class="hero-title">中越常用语</view>
+    <view class="hero-subtitle">点中文或越南语旁的喇叭，立即播放对应发音</view>
+    <view class="search-box">
+      <text class="search-icon">⌕</text>
+      <input value="{{keyword}}" bindinput="onSearch" placeholder="搜索中文或越南语" confirm-type="search" />
+      <text class="clear" wx:if="{{keyword}}" bindtap="clearSearch">×</text>
+    </view>
+  </view>
+
+  <view class="scene-picker-wrap">
+    <text class="picker-label">选择场景</text>
+    <picker class="scene-picker" mode="selector" range="{{sceneOptions}}" range-key="name" value="{{activeSceneIndex}}" bindchange="onSceneChange">
+      <view class="picker-value"><text>{{activeSceneLabel}}</text><text class="picker-arrow">⌄</text></view>
+    </picker>
+  </view>
+
+  <view class="scene-list" wx:if="{{visibleScenes.length}}">
+    <view class="scene-section" wx:for="{{visibleScenes}}" wx:key="id" wx:for-item="scene">
+      <view class="scene-heading"><text class="scene-icon">{{scene.icon}}</text><text>{{scene.name}}</text><text class="scene-count">{{scene.items.length}}句</text></view>
+      <view class="phrase-card" wx:for="{{scene.items}}" wx:key="id" wx:for-item="phrase">
+        <view class="phrase-row chinese">
+          <view class="language-tag">中</view>
+          <text class="phrase-text" user-select="true">{{phrase.zh}}</text>
+          <button class="audio-button {{playingKey === phrase.id + '-zh' ? 'playing' : ''}}" data-id="{{phrase.id}}" data-lang="zh" bindtap="playPhrase" aria-label="播放中文">
+            <text>{{playingKey === phrase.id + '-zh' ? '■' : '▶'}}</text>
+          </button>
+        </view>
+        <view class="divider"></view>
+        <view class="phrase-row vietnamese">
+          <view class="language-tag vi">越</view>
+          <text class="phrase-text" user-select="true">{{phrase.vi}}</text>
+          <button class="audio-button {{playingKey === phrase.id + '-vi' ? 'playing' : ''}}" data-id="{{phrase.id}}" data-lang="vi" bindtap="playPhrase" aria-label="播放越南语">
+            <text>{{playingKey === phrase.id + '-vi' ? '■' : '▶'}}</text>
+          </button>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view class="empty" wx:else>没有找到相关常用语，换个关键词试试</view>
+</view>

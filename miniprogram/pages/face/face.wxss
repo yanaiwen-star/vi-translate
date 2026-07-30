@@ -1,0 +1,155 @@
+/* pages/face/face.wxss —— 双话筒·一人一句（PTT） */
+
+.face-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ===== 顶部状态栏 ===== */
+.face-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 32rpx 8rpx;
+  flex-shrink: 0;
+}
+.face-status-pill {
+  display: inline-flex; align-items: center; gap: 8rpx;
+  height: 44rpx; padding: 0 20rpx; border-radius: 22rpx;
+  background: #f0f1f3; color: var(--text-secondary); font-size: 22rpx;
+}
+.face-status-dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: #c8ccd1; }
+.face-status-pill.warn { background: #fff5e0; color: #b06400; }
+.face-status-pill.warn .face-status-dot { background: #ffb020; }
+.face-status-pill.active { background: #e6f4ef; color: var(--primary); }
+.face-status-pill.active .face-status-dot { background: var(--primary); }
+.face-status-pill.idle { background: #f0f1f3; color: var(--text-secondary); }
+.face-settings {
+  width: 52rpx; height: 52rpx; border-radius: 50%;
+  background: #fff; display: flex; align-items: center; justify-content: center;
+  color: var(--text-secondary); box-shadow: 0 2rpx 8rpx rgba(0,0,0,.06); font-size: 30rpx;
+}
+
+/* ===== 话筒行 ===== */
+.mic-row {
+  flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 8rpx 0;
+}
+.mic-btn {
+  width: 148rpx; height: 148rpx; border-radius: 50%;
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  transition: transform .15s, opacity .15s;
+}
+.mic-btn.mine {
+  background: linear-gradient(135deg, #0D7C5C 0%, #13A77E 100%);
+  box-shadow: 0 12rpx 32rpx rgba(13, 124, 92, 0.35);
+}
+.mic-btn.peer {
+  background: linear-gradient(135deg, #6a4bb0 0%, #8a63d8 100%);
+  box-shadow: 0 12rpx 32rpx rgba(106, 75, 176, 0.35);
+}
+.mic-press { transform: scale(0.94); }
+.mic-btn.disabled { opacity: 0.32; }
+.mic-icon { font-size: 62rpx; line-height: 1; }
+.mic-btn.recording { animation: mic-glow 1.4s infinite ease-in-out; }
+@keyframes mic-glow {
+  0%, 100% { box-shadow: 0 12rpx 32rpx rgba(13,124,92,0.5), 0 0 0 18rpx rgba(13,124,92,0.16); }
+  50%      { box-shadow: 0 12rpx 32rpx rgba(13,124,92,0.5), 0 0 0 32rpx rgba(13,124,92,0.05); }
+}
+.mic-side-tag { font-size: 22rpx; color: var(--text-hint); margin-top: 10rpx; }
+
+/* ===== 双对话框 ===== */
+.panel {
+  flex: 1 1 0;
+  display: flex; flex-direction: column;
+  margin: 6rpx 24rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(20, 30, 50, 0.05);
+  min-height: 0;
+}
+/* 上对话框整体 180° 翻转，方便对面的人正着看 */
+.panel-top { transform: rotate(180deg); }
+.panel-body-wrap { flex: 1 1 0; display: flex; flex-direction: column; min-height: 0; }
+.panel-body { flex: 1 1 0; padding: 18rpx 20rpx; min-height: 0; box-sizing: border-box; }
+.panel-empty {
+  color: var(--text-hint); font-size: 24rpx;
+  text-align: center; margin-top: 40rpx; line-height: 1.6;
+}
+.anchor { height: 1rpx; }
+
+/* 气泡 */
+.bubble-row { display: flex; margin-bottom: 14rpx; }
+.bubble {
+  max-width: 85%;
+  padding: 16rpx 22rpx;
+  border-radius: 22rpx;
+  font-size: 30rpx; line-height: 1.5;
+  word-break: break-word;
+}
+/* 这个对话框所属语言“亲口说的” → 实心 */
+.bubble.own { background: var(--primary); color: #fff; border-top-left-radius: 6rpx; }
+/* 由对方语言翻译过来的 → 浅色 */
+.bubble.trans { background: #f1ecfa; color: #3a2d5c; border-top-left-radius: 6rpx; }
+.bubble.draft { opacity: 0.7; }
+
+/* ===== 中间语种条 ===== */
+.lang-bar {
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  gap: 20rpx;
+  padding: 8rpx 0;
+}
+.lang-pill {
+  font-size: 28rpx; font-weight: 600; color: var(--primary);
+  background: #eef6f2; padding: 12rpx 28rpx; border-radius: 999rpx;
+}
+.lang-pill.alt { color: #6a4bb0; background: #f1ecfa; }
+.lang-swap {
+  font-size: 40rpx; color: #8a8f99; line-height: 1;
+  width: 64rpx; height: 64rpx; border-radius: 50%;
+  background: #fff; box-shadow: 0 2rpx 8rpx rgba(0,0,0,.08);
+  display: flex; align-items: center; justify-content: center;
+}
+.lang-swap:active { opacity: 0.5; }
+
+/* ===== 音量条 + 清空 ===== */
+.vol {
+  width: 56%; height: 8rpx; border-radius: 6rpx;
+  background: #e6e9ee; margin-top: 14rpx; overflow: hidden;
+}
+.vol-fill { height: 100%; background: var(--primary); border-radius: 6rpx; transition: width .08s linear; }
+.clear-btn {
+  margin-top: 12rpx; font-size: 24rpx; color: var(--text-hint);
+  padding: 6rpx 24rpx; border-radius: 999rpx; background: #f0f2f5;
+}
+
+/* ===== 设置 Modal ===== */
+.entry-mask {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center; z-index: 99;
+}
+.entry-card {
+  width: 84vw; max-width: 600rpx; background: #fff;
+  border-radius: 28rpx; padding: 40rpx 36rpx;
+  display: flex; flex-direction: column; gap: 18rpx;
+}
+.entry-title { font-size: 34rpx; font-weight: 700; color: var(--text-primary); }
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22rpx 0; border-bottom: 2rpx solid var(--border);
+}
+.settings-label { font-size: 30rpx; color: var(--text-primary); }
+.settings-value { font-size: 30rpx; color: var(--primary); font-weight: 600; }
+.settings-hint { font-size: 22rpx; color: var(--text-hint); }
+.entry-btn {
+  height: 84rpx; line-height: 84rpx; border-radius: 16rpx;
+  font-size: 30rpx; font-weight: 500; background: var(--primary); color: #fff;
+  border: none; margin: 0;
+}
+.entry-btn::after { border: none; }

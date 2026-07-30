@@ -1,0 +1,38 @@
+<view class="business-page">
+  <view class="business-head">
+    <view><view class="head-title">找业务</view><view class="head-sub">翻译业务需求 · 按服务类型快速查看</view></view>
+    <view class="head-count">{{activeItems.length + visibleExamples.length}} 条</view>
+  </view>
+
+  <scroll-view class="filter-scroll" scroll-x enable-flex>
+    <view class="filter-row"><view wx:for="{{filters}}" wx:key="code" class="filter-chip {{filter === item.code ? 'active' : ''}}" data-code="{{item.code}}" bindtap="onFilter">{{item.label}}</view></view>
+  </scroll-view>
+
+  <view class="section" wx:if="{{activeItems.length}}">
+    <view class="section-head"><text>为你匹配</text><text class="section-badge">实时</text></view>
+    <view class="business-card active-card" wx:for="{{activeItems}}" wx:key="id">
+      <view class="card-top"><text class="card-title">{{item.title}}</text><text class="status active">{{item.statusLabel}}</text></view>
+      <view class="pair">{{item.pair}}</view>
+      <view class="summary">{{item.summary}}</view>
+      <view class="meta"><text>{{item.serviceLabel}}</text><text>{{item.mode}}</text><text>{{item.location}}</text><text>{{item.schedule}}</text></view>
+      <button class="respond" data-id="{{item.id}}" loading="{{respondingId === item.id}}" bindtap="onRespond">我有兴趣</button>
+    </view>
+  </view>
+
+  <view class="match-notice" wx:if="{{notice}}">{{notice}}</view>
+
+  <view class="section">
+    <view class="section-head"><text>业务信息</text><text class="section-note">历史需求已脱敏，仅供业务方向参考</text></view>
+    <view class="business-card" wx:for="{{visibleExamples}}" wx:key="id">
+      <view class="card-top"><text class="card-title">{{item.title}}</text><text class="status">{{item.statusLabel}}</text></view>
+      <view class="pair">{{item.pair}}</view>
+      <view class="summary">{{item.summary}}</view>
+      <view class="meta"><text>{{item.serviceLabel}}</text><text>{{item.mode}}</text><text>{{item.location}}</text><text>{{item.schedule}}</text></view>
+      <view class="industry">领域：{{item.industry}}</view>
+    </view>
+    <view class="empty" wx:if="{{visibleExamples.length === 0}}">暂无此类业务信息</view>
+  </view>
+
+  <view class="footer-note">业务内容不展示电话、微信、文件或证件信息。当前需求需双方授权后才能交换联系方式。</view>
+  <button class="publish-button" bindtap="onPublish">＋ 免费发布</button>
+</view>

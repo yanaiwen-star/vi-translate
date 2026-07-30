@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>时长包 · vi-translate</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root { --brand: #0d7c5c; --brand2: #16a37b; }
+  body {
+    font-family: 'PingFang SC', system-ui, sans-serif;
+    background:
+      radial-gradient(900px 460px at 50% -12%, rgba(13,124,92,.16) 0%, transparent 60%),
+      linear-gradient(180deg, #f4f7f6 0%, #eef2f1 100%);
+    color: #14231e;
+  }
+  .card { transition: transform .28s ease, box-shadow .28s ease, border-color .2s ease; }
+  .card:hover { transform: translateY(-8px); box-shadow: 0 26px 50px -18px rgba(13,124,92,.4); }
+  .featured { border-color: var(--brand); box-shadow: 0 22px 44px -18px rgba(13,124,92,.42); }
+  .btn-primary { background: linear-gradient(135deg, var(--brand), var(--brand2)); }
+  .btn-ghost { background: #eef6f2; color: var(--brand); }
+</style>
+</head>
+<body class="min-h-screen px-5 py-12">
+  <!-- 顶部 -->
+  <header class="max-w-5xl mx-auto text-center mb-8">
+    <div class="text-4xl font-extrabold tracking-tight">同传时长包</div>
+    <div class="text-gray-500 mt-3">每天免费 20 分钟实时同传，用超了再按需购买 · 购买后长期有效</div>
+    <a href="/login.html" class="inline-block mt-4 text-sm text-[color:var(--brand)] hover:underline">已有账号？去登录</a>
+  </header>
+
+  <!-- 免费层横幅 -->
+  <div class="max-w-5xl mx-auto mb-10">
+    <div class="rounded-3xl p-6 sm:p-7 text-white flex items-center justify-between shadow-xl"
+         style="background:linear-gradient(135deg,var(--brand),var(--brand2))">
+      <div>
+        <div class="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-white/25 mb-2">免费层</div>
+        <div class="text-lg font-semibold">每天 20 分钟免费同传</div>
+        <div class="text-white/85 text-sm mt-1">次日 0 点自动重置，无需付费</div>
+      </div>
+      <div class="text-right leading-none">
+        <div class="text-5xl font-extrabold">20</div>
+        <div class="text-white/85 text-xs mt-2">分钟 / 天</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 语音包 -->
+  <div class="max-w-5xl mx-auto mb-4 text-lg font-bold">选择语音包</div>
+  <main id="plans" class="max-w-5xl mx-auto grid gap-6 sm:grid-cols-2 lg:grid-cols-3"></main>
+  <div id="hint" class="text-center text-gray-400 mt-8 text-sm">加载中…</div>
+
+  <!-- 计费说明 -->
+  <section class="max-w-5xl mx-auto mt-12 bg-white/80 backdrop-blur rounded-3xl p-6 shadow-sm text-sm text-gray-500 leading-8">
+    <div class="font-semibold text-gray-800 mb-2">计费说明</div>
+    <div>· 每天赠送 20 分钟免费同传，次日自动重置。</div>
+    <div>· 语音包按实际同传时长扣减分钟，购买后长期有效。</div>
+    <div>· 开启语音播报（音色克隆）与拍照翻译不额外单独计费。</div>
+    <div>· 实际时长以系统结算为准。</div>
+  </section>
+
+  <template id="tpl">
+    <div class="card bg-white rounded-3xl p-7 border-2 border-gray-100 shadow-lg flex flex-col relative">
+      <div data-ribbon class="hidden absolute top-0 right-0 text-xs font-semibold text-white px-4 py-1.5 rounded-bl-2xl rounded-tr-3xl" style="background:linear-gradient(135deg,var(--brand),var(--brand2))">推荐</div>
+      <div class="flex items-baseline gap-2">
+        <div class="text-xl font-bold" data-name></div>
+        <div data-highlight class="text-xs px-2 py-0.5 rounded-full" style="color:var(--brand);background:rgba(13,124,92,.1)"></div>
+      </div>
+      <div class="mt-5 flex items-end gap-1">
+        <span class="text-5xl font-extrabold" data-min></span>
+        <span class="text-gray-400 mb-1">分钟</span>
+      </div>
+      <div class="text-gray-400 text-sm mt-1" data-permin></div>
+      <div class="mt-6 flex items-center justify-between">
+        <div class="text-3xl font-extrabold text-[#f5762e]"><span class="text-lg align-top">¥</span><span data-price></span></div>
+        <button class="btn-ghost px-6 py-2.5 rounded-full font-semibold hover:opacity-90 transition" data-buy>立即购买</button>
+      </div>
+    </div>
+  </template>
+
+<script>
+  const FALLBACK = [
+    { id: 'pack_small', name: '小包', price_cents: 10, chars_per_period: 60, interval: 'payg' },
+    { id: 'pack_medium', name: '中包', price_cents: 1990, chars_per_period: 200, interval: 'payg' },
+    { id: 'pack_large', name: '大包', price_cents: 4990, chars_per_period: 600, interval: 'payg' },
+  ];
+  const HIGHLIGHT = { pack_small: '轻度尝鲜', pack_medium: '最划算', pack_large: '重度首选' };
+  const yuan = (c) => (c / 100).toFixed(2).replace(/\.00$/, '');
+
+  async function load() {
+    let plans = FALLBACK;
+    try {
+      const r = await fetch('/billing/plans');
+      const data = await r.json();
+      if (Array.isArray(data) && data.length) {
+        const packs = data.filter(p => p.interval === 'payg' && p.price_cents > 0);
+        if (packs.length) plans = packs;
+      }
+    } catch (e) { /* 用兜底 */ }
+    plans = plans.slice().sort((a, b) => (a.chars_per_period || 0) - (b.chars_per_period || 0));
+
+    const wrap = document.getElementById('plans');
+    const tpl = document.getElementById('tpl');
+    const hint = document.getElementById('hint');
+    if (hint) hint.remove();
+    wrap.innerHTML = '';
+
+    for (const p of plans) {
+      const code = p.code || p.id;
+      const minutes = p.chars_per_period || 0;
+      const node = tpl.content.firstElementChild.cloneNode(true);
+      node.querySelector('[data-name]').textContent = p.name;
+      node.querySelector('[data-highlight]').textContent = HIGHLIGHT[code] || '按量购买';
+      node.querySelector('[data-min]').textContent = minutes;
+      node.querySelector('[data-permin]').textContent =
+        minutes ? '约 ' + (p.price_cents / 100 / minutes).toFixed(3).replace(/0+$/, '').replace(/\.$/, '') + ' 元/分钟' : '';
+      node.querySelector('[data-price]').textContent = yuan(p.price_cents);
+      node.querySelector('[data-buy]').onclick = () => { location.href = '/checkout.html?plan=' + (p.id || code); };
+      if (code === 'pack_medium') {
+        node.classList.add('featured');
+        node.querySelector('[data-ribbon]').classList.remove('hidden');
+        const btn = node.querySelector('[data-buy]');
+        btn.classList.remove('btn-ghost');
+        btn.classList.add('btn-primary', 'text-white');
+      }
+      wrap.appendChild(node);
+    }
+  }
+  load();
+</script>
+</body></html>

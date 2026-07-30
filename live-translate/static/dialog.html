@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>实时同传 · Qwen LiveTranslate</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@400;500;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { display: ['"Bodoni Moda"','serif'], sans: ['Jost','system-ui','sans-serif'] },
+        colors: { brand: { DEFAULT:'#07C160', soft:'#06B257' }, cta:'#F97316', ink:'#1E293B', canvas:'#F8FAFC' },
+      }},
+    };
+  </script>
+  <style>
+    :root { color-scheme: light; }
+    body { font-family:'Jost',system-ui,sans-serif; }
+    .wave-bar { transform-origin:bottom; animation:wave 1s ease-in-out infinite; }
+    @keyframes wave { 0%,100%{transform:scaleY(.25)} 50%{transform:scaleY(1)} }
+    .pulse-ring { animation:pulse 2s ease-out infinite; }
+    @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(249,115,22,.35)} 70%{box-shadow:0 0 0 18px rgba(249,115,22,0)} 100%{box-shadow:0 0 0 0 rgba(249,115,22,0)} }
+    .listening .wave-bar { animation-play-state:running; }
+    .idle .wave-bar { animation-play-state:paused; transform:scaleY(.2); }
+    .custom-scroll::-webkit-scrollbar { width:0; }
+    .lang-select { -webkit-appearance:none; appearance:none; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>"); background-repeat:no-repeat; background-position:right 10px center; }
+    .level-fill { transition:width .06s linear; }
+    .face-bubble{font-size:15px;line-height:1.5;border-radius:1rem;padding:.55rem .8rem;word-break:break-word;}
+    .face-bubble .fb-tag{font-size:10.5px;font-weight:600;letter-spacing:.02em;margin-bottom:3px;}
+    .face-bubble--mine{background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.18);}
+    .face-bubble--mine .fb-tag{color:#07C160;}
+    .face-bubble--theirs{background:#f1f5f9;border:1px solid #e2e8f0;}
+    .face-bubble--theirs .fb-tag{color:#64748b;}
+    .fb-wave{display:none;gap:2px;height:12px;align-items:flex-end;margin-top:5px;color:#07C160;}
+    .face-bubble--theirs .fb-wave{color:#64748b;}
+    .fb-wave span{width:3px;height:100%;background:currentColor;border-radius:2px;opacity:.55;animation:wave 1s ease-in-out infinite;transform-origin:bottom;}
+    .is-live .fb-wave{display:inline-flex;}
+    .panel-listening{box-shadow:inset 0 0 0 2px rgba(37,99,235,.28);}
+    .mic-active{background:#ef4444!important;box-shadow:0 10px 25px -5px rgba(239,68,68,.45)!important;}
+    /* 面对面：上栏（对面）整体镜像 180°，对面的人看才正；越南语话筒同理镜像 */
+    .face-mirrored{transform:rotate(180deg);transform-origin:center;}
+    .mic-mirrored{transform:rotate(180deg);}
+    .mic-hint{font-size:8.5px;line-height:1;color:rgba(255,255,255,.8);margin-top:1px;}
+    @media (prefers-reduced-motion: reduce){ .wave-bar,.pulse-ring,.fb-wave span{animation:none!important} }
+  </style>
+</head>
+<body class="bg-slate-200/60 min-h-screen flex items-center justify-center p-4 antialiased text-ink">
+
+  <main class="phone relative w-[390px] h-[844px] max-h-[92vh] rounded-[2.75rem] bg-canvas border border-slate-300 shadow-2xl overflow-hidden flex flex-col">
+
+    <!-- 顶栏：品牌「实时同传」+ 连接状态 + 设置 -->
+    <header class="relative px-5 pt-5 pb-3">
+      <div class="flex items-center justify-between gap-3">
+        <!-- 品牌：点击打开设置（语言与设置） -->
+        <button id="pairChip" class="flex items-center gap-2.5 outline-none group" type="button" aria-label="实时同传 · 语言与设置">
+          <span class="grid place-items-center w-10 h-10 rounded-2xl bg-brand text-white shadow-lg shadow-brand/25">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/></svg>
+          </span>
+          <span class="text-left">
+            <span class="block text-[21px] font-semibold leading-none tracking-wide text-ink">实时同传</span>
+            <span class="mt-1.5 block text-[11px] leading-none text-ink/45 tracking-wide">面对面 · 双向实时互译</span>
+          </span>
+        </button>
+
+        <div class="flex items-center gap-2">
+          <span id="conn" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/80 border border-slate-200 text-[11px] font-medium text-ink/45">
+            <span id="conn-dot" class="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+            <span id="conn-text">未连接</span>
+          </span>
+          <button id="gear" class="grid place-items-center w-9 h-9 rounded-full bg-white/80 border border-slate-200 text-ink/55 hover:bg-slate-100 transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-brand outline-none" aria-label="设置">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-2.92 1.05V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 3.6 15H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 20.4 9V9a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- 面对面：上越南语（镜像）/ 下中文（正向），中间分割线含转换按钮；气泡不再带语种/说话人文字标签 -->
+    <div id="faceWrap" class="relative flex-1 flex flex-col min-h-0">
+
+      <!-- 上半部分：越南语（对面），整体镜像 180° 让对面的人看才正 -->
+      <section id="panelB" class="face-mirrored flex-1 flex flex-col min-h-0 relative bg-slate-50/70">
+        <div id="streamB" class="flex-1 overflow-y-auto custom-scroll px-4 pt-2 pb-14 space-y-2"></div>
+      </section>
+
+      <!-- 中线：点击交换语言 -->
+      <div id="divider" class="shrink-0 flex items-center justify-center gap-2 bg-slate-100 py-1.5 cursor-pointer select-none" role="button" tabindex="0" aria-label="交换语言">
+        <span class="text-[12px] font-medium text-ink/45" id="dividerPair">中文 ⇄ 越南语</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></svg>
+      </div>
+
+      <!-- 下半部分：中文（你），正向 -->
+      <section id="panelA" class="flex-1 flex flex-col min-h-0 relative bg-white">
+        <div id="streamA" class="flex-1 overflow-y-auto custom-scroll px-4 pb-14 pt-2 space-y-2"></div>
+
+        <!-- 摄像头预览（摄像头模式覆盖“你”这半屏） -->
+        <div id="cameraPanel" class="absolute inset-0 hidden z-10">
+          <div class="relative w-full h-full bg-black">
+            <video id="camPreview" class="w-full h-full object-cover" autoplay muted playsinline></video>
+            <div id="camSubtitle" class="absolute inset-x-0 bottom-0 px-3 py-2 text-[14px] leading-snug text-white bg-gradient-to-t from-black/70 to-transparent min-h-[2.6rem] flex items-end">译文字幕将显示在这里</div>
+            <div class="absolute top-2 left-2 flex items-center gap-1 rounded-full bg-black/40 px-2 py-0.5 text-[11px] text-white">
+              <span id="camDot" class="w-1.5 h-1.5 rounded-full bg-slate-300"></span><span id="camState">摄像头未开启</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 话筒分居上下最边的中间：中文在底边、越南语在顶边（越南语镜像给对面看） -->
+      <div id="micBContainer" class="absolute left-1/2 -translate-x-1/2 top-3 z-20">
+        <button id="micB" class="mic-mirrored flex flex-col items-center justify-center gap-1 w-[3.5rem] h-[3.5rem] rounded-full bg-brand text-white shadow-lg shadow-brand/30 hover:brightness-110 active:scale-95 transition-all duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand outline-none" aria-label="越南语发言" aria-pressed="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+          <span id="micBName" class="text-[11px] font-semibold leading-none">越南语</span>
+        </button>
+      </div>
+      <div id="micAContainer" class="absolute left-1/2 -translate-x-1/2 bottom-3 z-20">
+        <button id="micA" class="flex flex-col items-center justify-center gap-1 w-[3.5rem] h-[3.5rem] rounded-full bg-brand text-white shadow-lg shadow-brand/30 hover:brightness-110 active:scale-95 transition-all duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-brand outline-none" aria-label="中文发言" aria-pressed="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+          <span id="micAName" class="text-[11px] font-semibold leading-none">中文</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 状态提示 + 指标 -->
+    <p id="hint" class="px-5 py-2 text-center text-[12.5px] text-ink/45 bg-white border-t border-slate-100">点击话筒开始 · 两人各按一个话筒互译</p>
+    <!-- 底部指标栏已移除 -->
+    <div class="hidden" aria-hidden="true"><select id="srcLang"></select><select id="tgtLang"></select></div>
+
+    <!-- 设置面板 -->
+    <div id="settings" class="absolute inset-0 z-20 hidden">
+      <div id="settings-backdrop" class="absolute inset-0 bg-ink/30 backdrop-blur-sm"></div>
+      <div class="absolute left-0 right-0 bottom-0 bg-white rounded-t-3xl shadow-2xl p-5 space-y-4 border-t border-slate-100 max-h-[88%] overflow-y-auto custom-scroll">
+        <div class="flex items-center justify-between">
+          <h2 class="font-display text-xl text-ink">设置</h2>
+          <button id="settings-close" class="grid place-items-center w-9 h-9 rounded-full text-ink/60 hover:bg-slate-100 outline-none">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </button>
+        </div>
+
+        <div id="accountBar" class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 border border-slate-200 px-3.5 py-2.5">
+          <div class="min-w-0">
+            <div class="text-[13px] font-medium text-ink/70">账号</div>
+            <div id="accountEmail" class="text-[13px] text-ink/90 truncate">未登录</div>
+          </div>
+          <div class="text-right">
+            <div class="text-[13px] font-medium text-ink/70">剩余字数</div>
+            <div id="quotaRemaining" class="text-[14px] font-semibold text-brand">—</div>
+          </div>
+          <button id="accountBtn" class="shrink-0 px-3 py-1.5 rounded-lg bg-brand text-white text-[13px] font-medium hover:opacity-90 transition">登录</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <label class="block space-y-1.5">
+            <span class="text-[13px] font-medium text-ink/70">区域</span>
+            <select id="region" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-brand">
+              <option value="mainland">中国大陆</option>
+              <option value="intl">新加坡 / 国际</option>
+            </select>
+          </label>
+          <label class="block space-y-1.5">
+            <span class="text-[13px] font-medium text-ink/70">音色</span>
+            <select id="voice" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-brand"></select>
+          </label>
+        </div>
+
+        <label class="block space-y-1.5">
+          <span class="text-[13px] font-medium text-ink/70">音色克隆</span>
+          <select id="voiceClone" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            <option value="off">关闭</option>
+            <option value="once">单角色克隆（单人）</option>
+            <option value="always">多角色克隆（轮流说话）</option>
+          </select>
+        </label>
+
+        <div class="border-t border-slate-100 pt-4 space-y-3">
+          <label class="flex items-center justify-between cursor-pointer">
+            <span class="text-[14px] font-medium text-ink/80">双向互译（两人各按一个话筒）</span>
+            <input id="biDir" type="checkbox" class="peer sr-only" checked />
+            <span class="relative w-11 h-6 rounded-full bg-slate-300 peer-checked:bg-brand transition-colors duration-200 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:rounded-full after:bg-white after:transition-transform after:duration-200 peer-checked:after:translate-x-5"></span>
+          </label>
+          <div id="biDirLangWrap" class="grid grid-cols-2 gap-3">
+            <label class="block space-y-1.5">
+              <span class="text-[13px] font-medium text-ink/70">互译语种 A</span>
+              <select id="langA" class="lang-select w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-brand"></select>
+            </label>
+            <label class="block space-y-1.5">
+              <span class="text-[13px] font-medium text-ink/70">互译语种 B</span>
+              <select id="langB" class="lang-select w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-brand"></select>
+            </label>
+          </div>
+          <p class="text-[12px] text-ink/40 leading-relaxed">开启后底部为两个话筒，分别由两位说话人按住/点击发言，自动互译；关闭则恢复手动选择源/目标语言。</p>
+        </div>
+
+        <label class="flex items-center justify-between cursor-pointer">
+          <span class="text-[14px] font-medium text-ink/80">译文语音播放</span>
+          <input id="audioEnabled" type="checkbox" class="peer sr-only" />
+          <span class="relative w-11 h-6 rounded-full bg-slate-300 peer-checked:bg-brand transition-colors duration-200 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:rounded-full after:bg-white after:transition-transform after:duration-200 peer-checked:after:translate-x-5"></span>
+        </label>
+
+        <label class="flex items-center justify-between cursor-pointer">
+          <span class="text-[14px] font-medium text-ink/80">清空对话记录</span>
+          <button id="clearHistory" type="button" class="px-3.5 py-1.5 rounded-xl bg-slate-100 text-[13px] font-medium text-ink/70 hover:bg-slate-200 outline-none focus-visible:ring-2 focus-visible:ring-brand">清空</button>
+        </label>
+
+        <label class="flex items-center justify-between cursor-pointer">
+          <span class="text-[14px] font-medium text-ink/80">摄像头输入模式</span>
+          <input id="camMode" type="checkbox" class="peer sr-only" />
+          <span class="relative w-11 h-6 rounded-full bg-slate-300 peer-checked:bg-brand transition-colors duration-200 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:w-5 after:h-5 after:rounded-full after:bg-white after:transition-transform after:duration-200 peer-checked:after:translate-x-5"></span>
+        </label>
+        <label class="block space-y-1.5 cam-only hidden">
+          <span class="text-[13px] font-medium text-ink/70">画面帧率</span>
+          <select id="frameRate" class="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            <option value="1" selected>1 fps</option>
+            <option value="2">2 fps</option>
+          </select>
+        </label>
+      </div>
+    </div>
+  </main>
+
+<script>
+/* ============================================================================
+ * 同传对话框 · 完整保留 Qwen3.5 LiveTranslate Demo (server.py) 的原版功能
+ *  - 麦克风 / 摄像头（视觉语境）双模式
+ *  - 音色克隆 (off / once / always)
+ *  - 译文语音播放（无需录音回放）
+ *  - 麦克风电平、Token 用量、request/trace 指标
+ *  - API Key 持久化 / 忘记 Key / 帮助链接、区域、59 种音色、语音开关
+ * 协议见 server.py /ws/livetranslate
+ * ==========================================================================*/
+
+const LANGUAGES = [
+  ['zh','中文'],['en','English'],['ar','Arabic'],['de','German'],['fr','French'],
+  ['es','Spanish'],['pt','Portuguese'],['id','Indonesian'],['it','Italian'],['ko','Korean'],
+  ['ru','Russian'],['th','Thai'],['vi','Vietnamese'],['ja','Japanese'],['tr','Turkish'],
+  ['hi','Hindi'],['ms','Malay'],['nl','Dutch'],['ur','Urdu'],['nb','Norwegian'],
+  ['sv','Swedish'],['da','Danish'],['he','Hebrew'],['fi','Finnish'],['pl','Polish'],
+  ['is','Icelandic'],['cs','Czech'],['fil','Filipino'],['fa','Persian'],['yue','Cantonese'],
+  ['el','Greek'],['af','Afrikaans'],['ast','Asturian'],['be','Belarusian'],['bg','Bulgarian'],
+  ['bn','Bengali'],['bs','Bosnian'],['ca','Catalan'],['ceb','Cebuano'],['et','Estonian'],
+  ['gl','Galician'],['gu','Gujarati'],['hr','Croatian'],['hu','Hungarian'],['jv','Javanese'],
+  ['kk','Kazakh'],['kn','Kannada'],['ky','Kyrgyz'],['lv','Latvian'],['mk','Macedonian'],
+  ['ml','Malayalam'],['mr','Marathi'],['pa','Punjabi'],['ro','Romanian'],['sk','Slovak'],
+  ['sl','Slovenian'],['sw','Swahili'],['tg','Tajik'],['az','Azerbaijani'],['uk','Ukrainian'],
+];
+const AUDIO_LANGS = new Set(['zh','en','ar','de','fr','es','pt','id','it','ko','ru','th','vi','ja','tr','hi','ms','nl','ur','nb','sv','da','he','fi','pl','is','cs','fil','fa']);
+const LANG_CN = {
+  zh:'中文', en:'英语', ar:'阿拉伯语', de:'德语', fr:'法语', es:'西班牙语', pt:'葡萄牙语', id:'印尼语',
+  it:'意大利语', ko:'韩语', ru:'俄语', th:'泰语', vi:'越南语', ja:'日语', tr:'土耳其语', hi:'印地语',
+  ms:'马来语', nl:'荷兰语', ur:'乌尔都语', nb:'挪威语', sv:'瑞典语', da:'丹麦语', he:'希伯来语', fi:'芬兰语',
+  pl:'波兰语', is:'冰岛语', cs:'捷克语', fil:'菲律宾语', fa:'波斯语', yue:'粤语', el:'希腊语', af:'南非荷兰语',
+  be:'白俄罗斯语', bg:'保加利亚语', bn:'孟加拉语', bs:'波斯尼亚语', ca:'加泰罗尼亚语', ceb:'宿务语', et:'爱沙尼亚语',
+  gl:'加利西亚语', gu:'古吉拉特语', hr:'克罗地亚语', hu:'匈牙利语', jv:'爪哇语', kk:'哈萨克语', kn:'卡纳达语', ky:'吉尔吉斯语',
+  lv:'拉脱维亚语', mk:'马其顿语', ml:'马拉雅拉姆语', mr:'马拉地语', pa:'旁遮普语', ro:'罗马尼亚语', sk:'斯洛伐克语', sl:'斯洛文尼亚语',
+  sw:'斯瓦希里语', tg:'塔吉克语', az:'阿塞拜疆语', uk:'乌克兰语',
+};
+const VOICES = ['Tina','Cindy','Liora Mira','Sunnybobi','Raymond','Ethan','Theo Calm','Serena','Harvey','Maia','Evan','Qiao','Momo','Wil','Angel','Li Cassian','Mia','Joyner','Gold','Katerina','Ryan','Jennifer','Aiden','Mione','Sunny','Dylan','Eric','Peter','Joseph Chen','Marcus','Li','Kiki','Rocky','Sohee','Lenn','Ono Anna','Sonrisa','Bodega','Emilien','Andre','Radio Gol','Alek','Rizky','Roya','Arda','Hana','Dolce','Jakub','Griet','Eliška','Marina','Siiri','Ingrid','Sigga','Bea','Chloe'];
+const API_KEY_URLS = {
+  mainland: 'https://bailian.console.aliyun.com/cn-beijing?tab=model&source_channel=livetranslatedemo#/api-key',
+  intl: 'https://modelstudio.console.alibabacloud.com/ap-southeast-1?tab=globalset&source_channel=livetranslatedemointl#/efm/api_key',
+};
+const INPUT_RATE = 16000, FRAME = 1600, OUT_RATE = 24000, CAM_W = 640;
+
+/* ====================== 后端：Qwen LiveTranslate ====================== */
+class QwenLiveTranslateBackend {
+  constructor(opts = {}) {
+    this.opts = Object.assign({
+      wsBase: '', token: '', region: 'mainland', sourceLanguage: 'auto',
+      targetLanguage: 'en', voice: 'Tina', voiceCloneMode: 'off', audioEnabled: true,
+      inputMode: 'mic', visualContext: false, frameRate: 1,
+    }, opts);
+    this.ws = null;
+    this.mediaStream = null; this.captureCtx = null;
+    this.sourceNode = null; this.procNode = null; this.pending = [];
+    this.playbackCtx = null; this.nextPlayTime = 0;
+    this.onStatus = () => {}; this.onSource = () => {}; this.onTarget = () => {};
+    this.onLevel = () => {}; this.onUsage = () => {}; this.onCameraSubtitle = () => {};
+    this._connected = false;
+    this.onBoundary = () => {};
+
+    // 译文录音
+    this.recChunks = []; this.recRate = OUT_RATE; this.sessionStart = 0;
+    // 摄像头
+    this.camTimer = null; this.camCanvas = null;
+  }
+
+  get wsUrl() {
+    let base = this.opts.wsBase;
+    if (!base) base = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`;
+    return `${base.replace(/\/+$/,'')}/ws/livetranslate`;
+  }
+
+  async connect() {
+    this.onStatus('connecting');
+    const ws = new WebSocket(this.wsUrl);
+    ws.binaryType = 'arraybuffer';
+    this.ws = ws;
+    ws.onopen = () => this._sendConfig();
+    ws.onmessage = (ev) => this._onMessage(ev);
+    ws.onclose = () => { this._connected = false; this.onStatus('idle', '已断开'); };
+    ws.onerror = () => this.onStatus('error', 'WebSocket 连接失败');
+  }
+
+  _sendConfig() {
+    const o = this.opts;
+    const audioOn = o.audioEnabled && AUDIO_LANGS.has(o.targetLanguage);
+    this._send({
+      type: 'config',
+      token: localStorage.getItem('vt_token') || '',
+      region: o.region,
+      source_language: o.sourceLanguage,
+      target_language: o.targetLanguage,
+      audio_enabled: audioOn,
+      voice: o.voice,
+      voice_clone_mode: o.voiceCloneMode,
+      input_mode: o.inputMode,
+      visual_context: o.inputMode === 'camera' && o.visualContext,
+      source_config_enabled: true,
+      minimal_session: false,
+      voice_config_enabled: true,
+      voice_clone_config_enabled: true,
+    });
+    this.recChunks = []; this.recRate = OUT_RATE; this.sessionStart = Date.now();
+  }
+
+  _send(obj) { if (this.ws && this.ws.readyState === 1) this.ws.send(JSON.stringify(obj)); }
+
+  _onMessage(ev) {
+    let m; try { m = JSON.parse(ev.data); } catch { return; }
+    if (m.type === 'server_ready') {
+      this._connected = true;
+      this.onStatus('idle', '已连接');
+      if (m.request_id) this.onUsage({ request_id: m.request_id });
+      if (m.trace_id) this.onUsage({ trace_id: m.trace_id });
+      return;
+    }
+    if (m.type === 'server_error' || m.type === 'config_error') { this.onStatus('error', m.message || '服务端错误'); return; }
+    if (m.type === 'quota_exhausted') { this.onStatus('error', m.message || '翻译字数已用尽'); if (this.stop) this.stop(); return; }
+    if (m.type === 'image_frame_ack') return;
+    if (m.type === 'model_audio') { this._playPcm(m.audio, m.sample_rate || OUT_RATE); return; }
+    if (m.type !== 'model_event') return;
+    if (m.request_id) this.onUsage({ request_id: m.request_id });
+    if (m.status === 'connected') this.onStatus('idle', '已连接');
+    else if (m.status === 'translating') this.onStatus('listening', '翻译生成中');
+    else if (m.status === 'listening') this.onStatus('listening');
+    if (m.source_partial) this.onSource(m.source_partial, { final: false });
+    if (m.source_final)   this.onSource(m.source_final,   { final: true });
+    if (m.translation_partial) { this.onTarget(m.translation_partial, { final: false }); this.onCameraSubtitle(m.translation_partial); }
+    if (m.translation_final)   { this.onTarget(m.translation_final,   { final: true }); this.onCameraSubtitle(m.translation_final); }
+    if (m.usage) this.onUsage(m.usage);
+  }
+
+  async start() {
+    try {
+      await this._ensureConnected();
+      this.onStatus('listening');
+      await this._startCapture();
+    } catch (err) {
+      this._stopCapture();
+      const name = (err && err.name) || '';
+      const msg = name ? `${name}：${err.message || '无法访问麦克风'}` : '无法访问麦克风';
+      this.onStatus('error', msg);
+    }
+  }
+
+  _ensureConnected() {
+    if (this.ws && this.ws.readyState === 1) return Promise.resolve();
+    if (this.ws && this.ws.readyState !== 3) { try { this.ws.close(); } catch (_) {} }
+    this.ws = null; this._connected = false;
+    return new Promise((resolve, reject) => {
+      const tmo = setTimeout(() => {
+        this.onStatus = userHandler;
+        reject(new Error('连接超时'));
+      }, 15000);
+      const userHandler = this.onStatus;
+      this.onStatus = (s, d) => {
+        if (userHandler) userHandler(s, d);
+        if (s === 'idle' && d === '已连接') { clearTimeout(tmo); this.onStatus = userHandler; resolve(); }
+        else if (s === 'error') { clearTimeout(tmo); this.onStatus = userHandler; reject(new Error(d || '连接失败')); }
+      };
+      this.connect();
+    });
+  }
+
+  async _startCapture() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error('当前环境不支持麦克风采集（请用 http:// 方式打开页面）');
+    }
+    const cameraMode = this.opts.inputMode === 'camera';
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        video: cameraMode,
+      });
+    } catch (err) {
+      throw err; // 交给 start() 统一提示（权限被拒 / 无设备等）
+    }
+    this.mediaStream = stream;
+    if (cameraMode && this.onCameraReady) this.onCameraReady(stream);
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    const ctx = this.captureCtx = new Ctx();
+    if (ctx.state === 'suspended') { try { await ctx.resume(); } catch (_) {} }
+    const srcNode = this.sourceNode = ctx.createMediaStreamSource(stream);
+    const proc = this.procNode = ctx.createScriptProcessor(4096, 1, 1);
+    proc.onaudioprocess = (e) => {
+      const input = e.inputBuffer.getChannelData(0);
+      const resampled = this._downsample(input, ctx.sampleRate);
+      this.onLevel(resampled);
+      this.pending.push(...resampled);
+      this._flush();
+    };
+    srcNode.connect(proc); proc.connect(ctx.destination);
+  }
+
+  _downsample(input, rate) {
+    const target = INPUT_RATE;
+    if (rate === target) return input;
+    const ratio = rate / target;
+    const len = Math.floor(input.length / ratio);
+    const out = new Float32Array(len);
+    for (let i = 0; i < len; i++) {
+      const s = Math.floor(i * ratio), e = Math.min(Math.floor((i + 1) * ratio), input.length);
+      let sum = 0; for (let j = s; j < e; j++) sum += input[j];
+      out[i] = sum / Math.max(1, e - s);
+    }
+    return out;
+  }
+
+  _floatToPcm16(samples) {
+    const buf = new ArrayBuffer(samples.length * 2);
+    const view = new DataView(buf);
+    for (let i = 0; i < samples.length; i++) {
+      const s = Math.max(-1, Math.min(1, samples[i]));
+      view.setInt16(i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+    }
+    return buf;
+  }
+
+  _flush() {
+    while (this.pending.length >= FRAME) {
+      const frame = this.pending.slice(0, FRAME);
+      this.pending = this.pending.slice(FRAME);
+      if (this.ws && this.ws.readyState === 1) this.ws.send(this._floatToPcm16(frame));
+    }
+  }
+
+  stop() {
+    this._stopCapture();
+    if (this.ws) {
+      try { if (this.ws.readyState === 1) this.ws.send('stop'); } catch (_) {}
+      try {
+        this.ws.onclose = null; this.ws.onmessage = null; this.ws.onerror = null;
+        this.ws.close();
+      } catch (_) {}
+      this.ws = null;
+    }
+    this._connected = false;
+    this.onStatus('idle', '已断开');
+  }
+
+  _stopCapture() {
+    this._stopCamFrames();
+    if (this.procNode) this.procNode.disconnect();
+    if (this.sourceNode) this.sourceNode.disconnect();
+    if (this.captureCtx) this.captureCtx.close();
+    if (this.mediaStream) this.mediaStream.getTracks().forEach((t) => t.stop());
+    if (this.onCameraReady) this.onCameraReady(null);
+    this.procNode = null; this.sourceNode = null; this.captureCtx = null; this.mediaStream = null;
+    this.pending = [];
+  }
+
+  /* ---- 摄像头帧 ---- */
+  startCameraFrames(videoEl) {
+    this._stopCamFrames();
+    if (this.opts.inputMode !== 'camera' || !this.opts.visualContext) return;
+    this._camVideo = videoEl;
+    const fps = Math.max(1, Math.min(2, Number(this.opts.frameRate) || 1));
+    this.camTimer = window.setInterval(() => this._captureFrame(), 1000 / fps);
+    this._captureFrame();
+  }
+  _stopCamFrames() { if (this.camTimer) window.clearInterval(this.camTimer); this.camTimer = null; }
+  _captureFrame() {
+    if (!this._camVideo || !this._camVideo.videoWidth || this.ws?.readyState !== 1) return;
+    if (!this.camCanvas) this.camCanvas = document.createElement('canvas');
+    const ratio = this._camVideo.videoHeight / this._camVideo.videoWidth;
+    this.camCanvas.width = CAM_W; this.camCanvas.height = Math.round(CAM_W * ratio);
+    this.camCanvas.getContext('2d').drawImage(this._camVideo, 0, 0, this.camCanvas.width, this.camCanvas.height);
+    const img = this.camCanvas.toDataURL('image/jpeg', 0.72).split(',')[1];
+    this._send({ type: 'image_frame', image: img });
+  }
+
+  /* ---- 译文语音播放 ---- */
+  _b64ToBytes(b64) {
+    const bin = atob(b64); const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
+
+  _playPcm(base64, sampleRate) {
+    if (!this.opts.audioEnabled || !AUDIO_LANGS.has(this.opts.targetLanguage)) return;
+    const bytes = this._b64ToBytes(base64);
+    this.recChunks.push(bytes); // 录音
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!this.playbackCtx) { this.playbackCtx = new Ctx({ sampleRate }); this.nextPlayTime = this.playbackCtx.currentTime; }
+    if (this.playbackCtx.state === 'suspended') this.playbackCtx.resume();
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const samples = new Float32Array(bytes.byteLength / 2);
+    for (let i = 0; i < samples.length; i++) samples[i] = view.getInt16(i * 2, true) / 0x8000;
+    const buf = this.playbackCtx.createBuffer(1, samples.length, sampleRate);
+    buf.copyToChannel(samples, 0);
+    const src = this.playbackCtx.createBufferSource();
+    src.buffer = buf; src.connect(this.playbackCtx.destination);
+    const startAt = Math.max(this.playbackCtx.currentTime + 0.02, this.nextPlayTime);
+    src.start(startAt); this.nextPlayTime = startAt + buf.duration;
+  }
+
+  getRecordedWavUrl() {
+    if (!this.recChunks.length) return '';
+    let total = 0; for (const c of this.recChunks) total += c.byteLength;
+    const buffer = new ArrayBuffer(44 + total);
+    const view = new DataView(buffer);
+    const writeAscii = (off, t) => { for (let i = 0; i < t.length; i++) view.setUint8(off + i, t.charCodeAt(i)); };
+    writeAscii(0, 'RIFF'); view.setUint32(4, 36 + total, true); writeAscii(8, 'WAVE');
+    writeAscii(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true); view.setUint32(24, this.recRate, true);
+    view.setUint32(28, this.recRate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
+    writeAscii(36, 'data'); view.setUint32(40, total, true);
+    const out = new Uint8Array(buffer); let off = 44;
+    for (const c of this.recChunks) { out.set(c, off); off += c.byteLength; }
+    return URL.createObjectURL(new Blob([buffer], { type: 'audio/wav' }));
+  }
+
+  setLanguages(src, tgt) {
+    this.opts.sourceLanguage = src; this.opts.targetLanguage = tgt;
+    if (this._connected && this.ws && this.ws.readyState === 1) { this.ws.close(); this.connect(); }
+  }
+  setMode(mode, visualContext) {
+    this.opts.inputMode = mode;
+    this.opts.visualContext = visualContext;
+    if (this._connected && this.ws && this.ws.readyState === 1) { this.ws.close(); this.connect(); }
+  }
+
+  setTarget(lang) {
+    this.opts.targetLanguage = lang;
+    this._send({ type: 'set_target', language: lang });
+  }
+}
+
+/* ====================== 对话框控制器 ====================== */
+class InterpretApp {
+  constructor(root) {
+    this.$ = (s) => root.querySelector(s);
+    this.streamA = this.$('#streamA');
+    this.streamB = this.$('#streamB');
+    this.panelA = this.$('#panelA');
+    this.panelB = this.$('#panelB');
+    this.micA = this.$('#micA');
+    this.micB = this.$('#micB');
+    this.activeSpeaker = null;
+    this.hint = this.$('#hint');
+    this.connDot = this.$('#conn-dot');
+    this.connText = this.$('#conn-text');
+    this.srcSel = this.$('#srcLang');
+    this.tgtSel = this.$('#tgtLang');
+    this.audioEnabled = this.$('#audioEnabled');
+    this.metrics = this.$('#metrics');
+    this.listening = false; this.liveSrc = null; this.liveTgt = null; this._lastTgtBubble = null; this.committed = null;
+    this._commitTimer = null; this._tgtCommitTimer = null;
+    this._srcLocked = false; this._tgtLocked = false;
+    this.activeMode = 'mic';
+    this.usage = { in: 0, out: 0, total: 0, req: '', trace: '' };
+    // 双向互译状态：默认开启，中文 ⇄ 越南语
+    this.bidirectional = true;
+    this.langA = 'zh'; this.langB = 'vi';
+    this.currentTarget = 'vi';
+    this._lastSpokenLang = null; this._pendingDir = null;
+    this._populate();
+  }
+
+  _populate() {
+    const auto = document.createElement('option');
+    auto.value = 'auto'; auto.textContent = '自动检测';
+    this.srcSel.appendChild(auto);
+    for (const [code, label] of LANGUAGES) {
+      const o1 = document.createElement('option'); o1.value = code; o1.textContent = label; this.srcSel.appendChild(o1);
+      const o2 = document.createElement('option'); o2.value = code; o2.textContent = label; this.tgtSel.appendChild(o2);
+    }
+    this.srcSel.value = 'auto'; this.tgtSel.value = 'en';
+    for (const [code, label] of LANGUAGES) {
+      const a = document.createElement('option'); a.value = code; a.textContent = label; this.$('#langA').appendChild(a);
+      const b = document.createElement('option'); b.value = code; b.textContent = label; this.$('#langB').appendChild(b);
+    }
+    this.$('#langA').value = 'zh'; this.$('#langB').value = 'vi';
+    for (const v of VOICES) { const o = document.createElement('option'); o.value = v; o.textContent = v; this.$('#voice').appendChild(o); }
+    this.$('#voice').value = 'Tina';
+  }
+
+  init({ backend }) {
+    this.backend = backend;
+    backend.onStatus = (s, d) => this.setStatus(s, d);
+    backend.onSource = (t, o) => this.pushSource(t, o);
+    backend.onTarget = (t, o) => this.pushTarget(t, o);
+    backend.onLevel = (samples) => this.setLevel(samples);
+    backend.onUsage = (u) => this.addUsage(u);
+    backend.onCameraSubtitle = (t) => { const c = this.$('#camSubtitle'); const text = (t || '').trim(); c.textContent = text || '译文字幕将显示在这里'; c.classList.toggle('text-white/50', !text); };
+    backend.onCameraReady = (stream) => this._onCameraReady(stream);
+
+    this.micA.addEventListener('click', (e) => { e.stopPropagation(); this._setSpeaker('A'); });
+    this.micB.addEventListener('click', (e) => { e.stopPropagation(); this._setSpeaker('B'); });
+    this.$('#clearHistory').addEventListener('click', () => this.clearAll());
+    this.$('#gear').addEventListener('click', () => this._openSettings());
+    this.$('#settings-close').addEventListener('click', () => this._closeSettings());
+    this.$('#settings-backdrop').addEventListener('click', () => this._closeSettings());
+    this.$('#pairChip').addEventListener('click', () => this._openSettings());
+    this.$('#divider').addEventListener('click', () => this._swapBiDir());
+    this.$('#divider').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this._swapBiDir(); } });
+    this.$('#biDir').addEventListener('change', () => this._applyBiDir());
+    this.$('#langA').addEventListener('change', () => this._applyBiDir());
+    this.$('#langB').addEventListener('change', () => this._applyBiDir());
+    this.$('#camMode').addEventListener('change', () => this._setMode(this.$('#camMode').checked ? 'camera' : 'mic'));
+    this._updateMicUI();
+
+
+    const onLangChange = () => { if (!this.listening) this._applyLang(); };
+    this.srcSel.addEventListener('change', onLangChange);
+    this.tgtSel.addEventListener('change', onLangChange);
+
+    // 设置项
+    const syncSettings = () => {
+      backend.opts.token = localStorage.getItem('vt_token') || '';
+      backend.opts.region = this.$('#region').value;
+      backend.opts.voice = this.$('#voice').value;
+      backend.opts.voiceCloneMode = this.$('#voiceClone').value;
+      backend.opts.audioEnabled = this.audioEnabled.checked;
+      backend.opts.frameRate = this.$('#frameRate').value;
+      this._syncVoiceState();
+      this._applyLang();
+    };
+    this.audioEnabled.addEventListener('change', () => {
+      backend.opts.audioEnabled = this.audioEnabled.checked;
+      this._syncVoiceState();
+      if (this.listening && this.activeSpeaker) this._restartSession();
+    });
+    this.$('#region').addEventListener('change', syncSettings);
+    this.$('#voice').addEventListener('change', syncSettings);
+    this.$('#voiceClone').addEventListener('change', syncSettings);
+    this.$('#frameRate').addEventListener('change', () => { backend.opts.frameRate = this.$('#frameRate').value; });
+    this.$('#visualContext').addEventListener('change', () => {
+      backend.opts.visualContext = this.$('#visualContext').checked;
+      if (this.listening && this.activeMode === 'camera') backend.startCameraFrames(this.$('#camPreview'));
+    });
+
+    this.audioEnabled.checked = true;
+    syncSettings();
+
+    // ---- Account / quota (commercial mode) ----
+    const accountBtn = this.$('#accountBtn');
+    const accountEmail = this.$('#accountEmail');
+    const quotaRemaining = this.$('#quotaRemaining');
+    const renderAccount = async () => {
+      const token = localStorage.getItem('vt_token');
+      if (!token) {
+        accountEmail.textContent = '未登录';
+        quotaRemaining.textContent = '—';
+        accountBtn.textContent = '登录';
+        return;
+      }
+      try {
+        const meRes = await fetch('/auth/me', { headers: { Authorization: 'Bearer ' + token } });
+        const me = await meRes.json();
+        accountEmail.textContent = me.email || '已登录';
+        const qRes = await fetch('/billing/quota', { headers: { Authorization: 'Bearer ' + token } });
+        const q = await qRes.json();
+        // 内部以「字符额度」计，对外按 1 分钟 ≈ 2000 字符折算成分钟展示。
+        const CHARS_PER_MINUTE = 2000;
+        quotaRemaining.textContent = Math.floor((q.available_chars || 0) / CHARS_PER_MINUTE) + ' 分钟';
+      } catch (e) {
+        accountEmail.textContent = '登录失效';
+        accountBtn.textContent = '登录';
+      }
+      accountBtn.textContent = '套餐';
+    };
+    accountBtn.addEventListener('click', () => {
+      window.location.href = localStorage.getItem('vt_token') ? '/pricing.html' : '/login.html';
+    });
+    renderAccount();
+    this._applyBiDir();
+    backend.connect();
+  }
+
+  _setMode(mode) {
+    if (this.listening) return;
+    this.activeMode = mode;
+    const cam = mode === 'camera';
+    this.$('#cameraPanel').classList.toggle('hidden', !cam);
+    this.$('#micAContainer').classList.toggle('hidden', cam); // 摄像头模式上栏被预览占满
+    this.$('#micBContainer').classList.toggle('hidden', cam); // 摄像头模式同样隐藏下栏话筒
+    this.$('#camMode').checked = cam;
+    document.querySelectorAll('.cam-only').forEach((el) => el.classList.toggle('hidden', !cam));
+    this.backend.setMode(mode, this.$('#visualContext').checked);
+    this._hintForMode();
+  }
+
+  _hintForMode() {
+    this.hint.textContent = this.activeMode === 'camera'
+      ? '摄像头模式：开启后把画面传给模型作视觉语境'
+      : '点击话筒开始 · 两人各按一个话筒互译';
+  }
+
+  _onCameraReady(stream) {
+    const video = this.$('#camPreview');
+    const dot = this.$('#camDot'), state = this.$('#camState');
+    if (stream) {
+      video.srcObject = stream; video.play().catch(() => {});
+      dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400'; state.textContent = '摄像头已开启';
+      if (this.listening && this.activeMode === 'camera') this.backend.startCameraFrames(video);
+    } else {
+      video.srcObject = null;
+      dot.className = 'w-1.5 h-1.5 rounded-full bg-slate-300'; state.textContent = '摄像头未开启';
+    }
+  }
+
+  _applyLang() {
+    // 双话筒模式：源语言 = 当前说话人对端（即目标语言的对立面），明确指定以便模型准确识别
+    if (this.currentTarget) {
+      this.backend.opts.sourceLanguage = (this.currentTarget === this.langA) ? this.langB : this.langA;
+    } else {
+      this.backend.opts.sourceLanguage = 'auto';
+    }
+    const tgt = this.currentTarget || this.langB;
+    this.backend.opts.targetLanguage = tgt;
+    this.tgtSel.value = tgt;
+    this.srcSel.value = (this.currentTarget === this.langA) ? this.langB : this.langA;
+    this._syncVoiceState();
+  }
+
+  _syncVoiceState() {
+    const supports = this.audioEnabled.checked && AUDIO_LANGS.has(this.tgtSel.value);
+    this.$('#voice').disabled = !supports;
+    this.$('#voice').classList.toggle('opacity-50', !supports);
+    this.$('#voiceClone').disabled = !supports;
+    this.$('#voiceClone').classList.toggle('opacity-50', !supports);
+  }
+
+  _applyBiDir() {
+    this.bidirectional = this.$('#biDir').checked;
+    this.langA = this.$('#langA').value;
+    this.langB = this.$('#langB').value;
+    this.$('#biDirLangWrap').classList.toggle('opacity-40', !this.bidirectional);
+    this.$('#biDirLangWrap').classList.toggle('pointer-events-none', !this.bidirectional);
+    if (!this.listening) this.currentTarget = this.langB;
+    this._lastSpokenLang = null; this._pendingDir = null;
+    this._renderLangRow();
+    this._updateBiDirLabel();
+    this._applyLang();
+  }
+
+  _renderLangRow() {
+    this._updateBiDirLabel();
+  }
+
+  _updateBiDirLabel() {
+    const aN = this.$('#panelAName'); if (aN) aN.textContent = this._langNameCN(this.langA);
+    const bN = this.$('#panelBName'); if (bN) bN.textContent = this._langNameCN(this.langB);
+    const aM = this.$('#micAName'); if (aM) aM.textContent = this._langNameCN(this.langA);
+    const bM = this.$('#micBName'); if (bM) bM.textContent = this._langNameCN(this.langB);
+    const dp = this.$('#dividerPair'); if (dp) dp.textContent = `${this._langNameCN(this.langA)} ⇄ ${this._langNameCN(this.langB)}`;
+  }
+
+  _swapBiDir() {
+    if (this.listening) return;
+    const t = this.langA; this.langA = this.langB; this.langB = t;
+    this.$('#langA').value = this.langA; this.$('#langB').value = this.langB;
+    this.currentTarget = this.langB;
+    this._applyBiDir();
+  }
+
+  _openSettings() { this.$('#settings').classList.remove('hidden'); }
+  _closeSettings() { this.$('#settings').classList.add('hidden'); }
+
+  async _setSpeaker(speaker) {
+    // 点同一个话筒 = 停止；点另一个/首次点 = 彻底断开并以【最新配置】重连
+    // 关键：源/目标语种、语音播放等只在连接建立时下发，必须重连才能让设置真正生效
+    if (this.activeSpeaker === speaker) { this._stopSpeaking(); return; }
+    this.backend.stop();
+    this._finishSession(); // 保存上一段译文录音
+    this.activeSpeaker = speaker;
+    this.currentTarget = speaker === 'A' ? this.langB : this.langA;
+    // 固定语种识别：点的话筒即说话人语言，明确写死（不再 auto）
+    this.backend.opts.sourceLanguage = speaker === 'A' ? this.langA : this.langB;
+    this.backend.opts.targetLanguage = this.currentTarget;
+    // 在用户手势内预热/恢复播放音频上下文，确保译文语音能正常出声（绕过浏览器自动播放限制）
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx && !this.backend.playbackCtx) this.backend.playbackCtx = new Ctx({ sampleRate: 24000 });
+    if (this.backend.playbackCtx && this.backend.playbackCtx.state === 'suspended') this.backend.playbackCtx.resume();
+    this._updateMicUI();
+    this._updateBiDirLabel();
+    this._lastSpokenLang = null; this._pendingDir = null;
+    try { await this.backend.start(); }
+    catch (_) { /* 后端已通过 onStatus('error') 反馈 */ }
+  }
+
+  _stopSpeaking() {
+    this.backend.stop();
+    this._finishSession();
+    this.activeSpeaker = null;
+    this.currentTarget = null;
+    this._updateMicUI();
+  }
+
+  _restartSession() {
+    // 会话进行中修改了影响后端的设置（如语音播放），以当前说话人重连使其生效
+    if (!this.listening || !this.activeSpeaker) return;
+    const sp = this.activeSpeaker;
+    this.backend.stop();
+    this._finishSession();
+    this.backend.opts.sourceLanguage = sp === 'A' ? this.langA : this.langB;
+    this.backend.opts.targetLanguage = this.currentTarget;
+    this.backend.start().catch(() => {});
+  }
+
+  _updateMicUI() {
+    const setMic = (el, on) => {
+      el.classList.toggle('mic-active', on);
+      el.classList.toggle('bg-brand', !on);
+      el.classList.toggle('shadow-brand/30', !on);
+      el.setAttribute('aria-pressed', String(on));
+    };
+    setMic(this.micA, this.activeSpeaker === 'A');
+    setMic(this.micB, this.activeSpeaker === 'B');
+    this.panelA.classList.toggle('panel-listening', this.activeSpeaker === 'A');
+    this.panelB.classList.toggle('panel-listening', this.activeSpeaker === 'B');
+  }
+
+  _finishSession() {
+    // 不需要录音回放：每段译文直接沉淀为气泡，不再生成 WAV 卡片
+  }
+
+  clearAll() {
+    this.streamA.innerHTML = ''; this.streamB.innerHTML = '';
+    this.liveSrc = null; this.liveTgt = null; this._lastTgtBubble = null; this.committed = null;
+    this._srcLocked = false; this._tgtLocked = false;
+    this.usage = { in: 0, out: 0, total: 0, req: '', trace: '' };
+    this.renderMetrics();
+  }
+
+  setStatus(state, detail) {
+    const map = {
+      idle:       ['bg-slate-300', detail || '未连接'],
+      connecting: ['bg-amber-400', detail || '连接中…'],
+      listening:  ['bg-brand', detail || '同传中'],
+      error:      ['bg-red-500', '错误: ' + (detail || '')],
+    };
+    const [color, text] = map[state] || map.idle;
+    this.connDot.className = 'w-1.5 h-1.5 rounded-full ' + color;
+    this.connText.textContent = text;
+    this.listening = state === 'listening';
+    this._updateMicUI();
+    if (state === 'error') {
+      this.hint.textContent = (location.protocol === 'file:')
+        ? '本地文件方式打开时浏览器会禁止麦克风，请用 http://127.0.0.1:8010/dialog 打开'
+        : (detail || '出错了');
+    } else {
+      this.hint.textContent = this.listening
+        ? (this.activeMode === 'camera'
+            ? '摄像头同传中 · 点击结束'
+            : (this.activeSpeaker === 'A'
+                ? `${this._langNameCN(this.langA)}发言中 · 点话筒结束`
+                : this.activeSpeaker === 'B'
+                  ? `${this._langNameCN(this.langB)}发言中 · 点话筒结束`
+                  : '同传进行中 · 点击结束'))
+        : (detail && detail !== '已断开' && detail !== '未连接'
+            ? detail
+            : (this.activeMode === 'camera' ? this._hintForMode() : '点击话筒开始 · 两人各按一个话筒互译'));
+    }
+    if (this.listening && !this.liveSrc) this.openLive();
+    if (!this.listening && this.liveSrc) this.commitLive();
+  }
+
+  setLevel() {}
+
+  addUsage(u) {
+    if (!u || typeof u !== 'object') return;
+    if (u.request_id) this.usage.req = String(u.request_id);
+    if (u.trace_id) this.usage.trace = String(u.trace_id);
+    if (u.input_tokens) this.usage.in += Number(u.input_tokens);
+    if (u.output_tokens) this.usage.out += Number(u.output_tokens);
+    if (u.total_tokens) this.usage.total += Number(u.total_tokens);
+    this.renderMetrics();
+  }
+
+  renderMetrics() {
+    if (!this.metrics) return;
+    const u = this.usage;
+    const parts = [];
+    if (u.total || u.in || u.out) parts.push(`tokens ${u.total} (in ${u.in}/out ${u.out})`);
+    if (u.req) parts.push(`req ${u.req.slice(0, 12)}`);
+    this.metrics.textContent = parts.join(' · ');
+  }
+
+  _streamOf(side) { return side === 'A' ? this.streamA : this.streamB; }
+  _targetStream() { return this._streamOf((this.currentTarget || this.langB) === this.langA ? 'A' : 'B'); }
+
+  openLive() {
+    if (!this.activeSpeaker) return;
+    const speakerSide = this.activeSpeaker === 'A' ? 'A' : 'B';
+    const srcCode = speakerSide === 'A' ? this.langA : this.langB;
+    const tgtCode = this.currentTarget || (speakerSide === 'A' ? this.langB : this.langA);
+    const srcName = this._langNameCN(srcCode);
+    const tgtName = this._langNameCN(tgtCode);
+
+    // 说话人侧：原文（你说）
+    if (!this.liveSrc) {
+      const srcBubble = document.createElement('div');
+      srcBubble.className = 'face-bubble face-bubble--mine is-live';
+      srcBubble.innerHTML = `<div class="js-text"></div><span class="fb-wave">${Array.from({length:4}).map(()=>'<span></span>').join('')}</span>`;
+      this._streamOf(speakerSide).appendChild(srcBubble);
+      this.liveSrc = srcBubble;
+      this._srcLocked = false;
+      srcBubble.scrollIntoView({ block: 'end' });
+    }
+
+    // 译文：仅当不存在时才新建，避免与仍在进行的上一轮译文气泡重复
+    const tgtSide = tgtCode === this.langA ? 'A' : 'B';
+    if (!this.liveTgt) {
+      const tgtBubble = document.createElement('div');
+      tgtBubble.className = 'face-bubble face-bubble--theirs is-live';
+      tgtBubble.innerHTML = `<div class="js-text"></div><span class="fb-wave">${Array.from({length:4}).map(()=>'<span></span>').join('')}</span>`;
+      this._streamOf(tgtSide).appendChild(tgtBubble);
+      this.liveTgt = tgtBubble;
+      this._lastTgtBubble = tgtBubble;
+      this._tgtLocked = false;
+      tgtBubble.scrollIntoView({ block: 'end' });
+    }
+  }
+
+  commitLive() {
+    const finish = (el) => {
+      if (!el) return;
+      const has = el.querySelector('.js-text').textContent.trim();
+      if (!has) { el.remove(); return; }
+      el.classList.remove('is-live');
+    };
+    // 译文：有就提交
+    if (this.liveTgt) { finish(this.liveTgt); this.liveTgt = null; this._tgtLocked = false; }
+    // 源：仅当它已收到定稿时才提交，否则保留以继续接收后续内容（避免译文定稿把未定稿的源提前锁定）
+    if (this.liveSrc && this._srcLocked) { finish(this.liveSrc); this.liveSrc = null; this._srcLocked = false; }
+  }
+
+  _langName(code) {
+    if (code === 'auto') return '自动';
+    const f = LANGUAGES.find((l) => l[0] === code);
+    return f ? f[1] : code;
+  }
+
+  _langNameCN(code) {
+    if (code === 'auto') return '自动';
+    if (LANG_CN[code]) return LANG_CN[code];
+    const f = LANGUAGES.find((l) => l[0] === code);
+    return f ? f[1] : code;
+  }
+
+  pushSource(text, { final } = {}) {
+    if (!this.liveSrc) this.openLive();
+    if (!this.liveSrc) return;
+    // 已收到定稿：忽略随后可能到来的低质量 partial，避免覆盖正确结果（解决“第一行对、后面错”）
+    if (this._srcLocked && !final) return;
+    this.liveSrc.querySelector('.js-text').textContent = text;
+    this.liveSrc.scrollIntoView({ block: 'end' });
+    if (final) {
+      this._srcLocked = true;
+      clearTimeout(this._commitTimer);
+      this._commitTimer = setTimeout(() => this.commitLive(), 1500);
+    }
+  }
+
+  pushTarget(text, { final } = {}) {
+    if (!this.liveTgt) {
+      // 没有进行中的对话：把迟到的译文补到上一个译文气泡
+      if (this._lastTgtBubble && !this._lastTgtBubble.querySelector('.js-text').textContent.trim()) {
+        this._lastTgtBubble.querySelector('.js-text').textContent = text;
+      }
+      return;
+    }
+    // 已收到译文定稿：忽略随后可能到来的低质量 partial
+    if (this._tgtLocked && !final) return;
+    this.liveTgt.querySelector('.js-text').textContent = text;
+    this.liveTgt.scrollIntoView({ block: 'end' });
+    if (final) {
+      this._tgtLocked = true;
+      clearTimeout(this._tgtCommitTimer);
+      this._tgtCommitTimer = setTimeout(() => this.commitLive(), 600);
+    } else {
+      clearTimeout(this._tgtCommitTimer);
+      this._tgtCommitTimer = setTimeout(() => this.commitLive(), 1500);
+    }
+  }
+}
+
+/* ====================== 启动 ====================== */
+const params = new URLSearchParams(location.search);
+const WS_BASE = params.get('ws') || (location.protocol === 'file:' ? 'ws://127.0.0.1:8010' : '');
+const backend = new QwenLiveTranslateBackend({ wsBase: WS_BASE });
+const app = new InterpretApp(document.querySelector('.phone'));
+app.init({ backend });
+</script>
+</body>
+</html>

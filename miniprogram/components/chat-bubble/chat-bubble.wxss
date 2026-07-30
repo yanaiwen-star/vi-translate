@@ -1,0 +1,55 @@
+/* components/chat-bubble/chat-bubble.wxss */
+
+.bubble {
+  display: inline-block;
+  max-width: 100%;
+  padding: 16rpx 24rpx;
+  border-radius: 20rpx;
+  position: relative;
+  word-break: break-word;
+}
+
+.bubble.left {
+  background: #fff;
+  color: var(--text-primary);
+  border-top-left-radius: 4rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.bubble.right {
+  background: linear-gradient(135deg, var(--primary), #06b257);
+  color: #fff;
+  border-top-right-radius: 4rpx;
+  box-shadow: 0 2rpx 8rpx rgba(26, 115, 232, 0.3);
+}
+
+.bubble.source {
+  border: 2rpx solid transparent;
+}
+
+.bubble.target {
+  font-weight: 500;
+}
+
+.bubble.left.target {
+  background: linear-gradient(135deg, #fff8e1, #fff);
+  border-left: 6rpx solid var(--accent);
+}
+
+.bubble.right.target {
+  /* 译文也用主题色，仅 source 区分 */
+}
+
+.bubble-text {
+  font-size: 30rpx;
+  line-height: 1.5;
+}
+
+.bubble-meta {
+  margin-top: 8rpx;
+}
+
+.meta-label {
+  font-size: 20rpx;
+  opacity: 0.6;
+}

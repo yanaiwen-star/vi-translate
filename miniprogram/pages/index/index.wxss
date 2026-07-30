@@ -1,0 +1,608 @@
+/* pages/index/index.wxss —— 对齐 www.yuexunfanyi.com 实时同传手机版（绿色主题） */
+
+.page,
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 24rpx 24rpx 16rpx;
+  background:
+    radial-gradient(circle at 18% -8%, rgba(7, 193, 96, 0.12) 0, transparent 32%),
+    radial-gradient(circle at 82% 0%, rgba(95, 210, 155, 0.2) 0, transparent 34%),
+    linear-gradient(180deg, #ffffff 0%, #eaf7f1 56%, #e9f7ef 100%);
+  color: #0c3b2a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "Noto Sans", "Helvetica Neue", "PingFang SC", sans-serif;
+  gap: 16rpx;
+}
+
+/* —— 顶部：模式栏 + 状态 —— */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.mode-tabs {
+  flex: 1 1 auto;
+  display: flex;
+  gap: 6rpx;
+  margin-top: 4rpx;
+  border: 2rpx solid #d4ecdd;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.82);
+  padding: 4rpx;
+  align-self: stretch;
+  min-width: 0;
+}
+
+.mode-tab {
+  flex: 1 1 0;
+  border: 0;
+  background: transparent;
+  color: #5e5e5e;
+  padding: 14rpx 8rpx;
+  border-radius: 999rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mode-tab.active {
+  background: linear-gradient(135deg, #07c160, #06b257);
+  color: #fff;
+  box-shadow: 0 10rpx 26rpx rgba(7, 193, 96, 0.24);
+}
+
+.brand-block {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  min-width: 0;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 88rpx;
+  height: 88rpx;
+  flex: 0 0 auto;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #07c160, #06b257);
+  color: #fff;
+  font-size: 48rpx;
+  box-shadow: 0 16rpx 38rpx rgba(7, 193, 96, 0.3);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.brand-title {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #07c160;
+  line-height: 1.1;
+}
+
+.brand-sub {
+  margin-top: 8rpx;
+  color: #5e5e5e;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10rpx;
+  border: 2rpx solid #d4ecdd;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 14rpx 40rpx rgba(7, 193, 96, 0.1), inset 0 1rpx 0 #fff;
+  padding: 12rpx 18rpx;
+  color: #5e5e5e;
+  font-weight: 700;
+  font-size: 24rpx;
+  flex: 0 0 auto;
+}
+
+.status-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #5e5e5e;
+}
+
+.status-dot.active {
+  background: #07c160;
+  box-shadow: 0 0 0 8rpx rgba(7, 193, 96, 0.14);
+}
+
+.status-dot.warn {
+  background: #ffbd4a;
+}
+
+.status-dot.error {
+  background: #ff5d7d;
+}
+
+/* —— 拍照翻译面板（原摄像头位置） —— */
+.photo-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  flex: 1;
+  min-height: 0;
+}
+
+.photo-shoot {
+  min-height: 96rpx;
+  width: 100%;
+  border: 0;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #07c160, #06b257);
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 800;
+  box-shadow: 0 14rpx 28rpx rgba(7, 193, 96, 0.24);
+  padding: 12rpx 0;
+}
+
+.photo-shoot.loading {
+  opacity: 0.75;
+}
+
+button.photo-shoot[disabled] {
+  background: #d8ecdf !important;
+  color: #7fa890 !important;
+  box-shadow: none;
+}
+
+.photo-result {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  flex: 1;
+  min-height: 0;
+}
+
+.photo-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border: 2rpx solid #d4ecdd;
+  border-radius: 20rpx;
+  background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.88) 48%, #f6fbf8 100%);
+  box-shadow: 0 24rpx 80rpx rgba(7, 193, 96, 0.12), inset 0 1rpx 0 #fff;
+}
+
+.translation-card {
+  background:
+    linear-gradient(135deg, rgba(7, 193, 96, 0.08), transparent 36%),
+    linear-gradient(180deg, #ffffff 0%, #f3fbf6 100%);
+}
+
+.photo-text {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 24rpx 26rpx;
+  font-size: 34rpx;
+  font-weight: 780;
+  line-height: 1.32;
+  box-sizing: border-box;
+  word-break: break-word;
+  font-family: inherit;
+}
+
+.photo-text.translation {
+  color: #07c160;
+}
+
+.photo-text.placeholder {
+  color: #5e5e5e;
+  opacity: 0.72;
+  font-size: 30rpx;
+}
+
+/* —— 拍照/文本 面板内的迷你语种选择 —— */
+.mini-lang-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14rpx;
+}
+
+/* —— 文本翻译面板 —— */
+.text-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  flex: 1;
+  min-height: 0;
+}
+
+.text-input {
+  width: 100%;
+  height: 260rpx;
+  box-sizing: border-box;
+  padding: 24rpx 26rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #0c3b2a;
+  word-break: break-word;
+  font-family: inherit;
+}
+
+.text-actions {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14rpx;
+}
+
+.text-actions button {
+  min-height: 84rpx;
+  width: 100%;
+  border-radius: 999rpx;
+  font-weight: 800;
+  font-size: 30rpx;
+  padding: 12rpx 0;
+}
+
+/* —— 工作区：双面板 —— */
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 同传首屏优先展示内容：两个文字框加高，设置区自然下移。 */
+.voice-workspace {
+  flex: none;
+  gap: 12rpx;
+}
+
+.voice-workspace .voice-panel {
+  height: 420rpx;
+}
+
+.panel {
+  height: 340rpx;
+  flex: none;
+  overflow: hidden;
+  border: 2rpx solid #d4ecdd;
+  border-radius: 20rpx;
+  background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.88) 48%, #f6fbf8 100%);
+  box-shadow: 0 24rpx 80rpx rgba(7, 193, 96, 0.12), inset 0 1rpx 0 #fff;
+}
+
+.translation-panel {
+  background:
+    linear-gradient(135deg, rgba(7, 193, 96, 0.08), transparent 36%),
+    linear-gradient(180deg, #ffffff 0%, #f3fbf6 100%);
+}
+
+.panel-label {
+  border-bottom: 2rpx solid #d4ecdd;
+  padding: 16rpx 22rpx;
+  color: #5e5e5e;
+  font-size: 22rpx;
+  font-weight: 900;
+}
+
+.live-text {
+  overflow: auto;
+  width: 100%;
+  height: calc(100% - 70rpx);
+  min-height: 0;
+  padding: 24rpx 26rpx;
+  font-size: 34rpx;
+  font-weight: 780;
+  line-height: 1.32;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.translation-text {
+  color: #07c160;
+}
+
+.live-text.placeholder {
+  color: #5e5e5e;
+  opacity: 0.72;
+  font-size: 30rpx;
+}
+
+.ph {
+  color: inherit;
+}
+
+.line {
+  display: block;
+  margin-bottom: 0.5em;
+  word-break: break-word;
+}
+
+.draft {
+  color: #632de4;
+  opacity: 0.76;
+}
+
+/* （已移除「翻译语音记录」相关样式） */
+
+/* —— 控制区 —— */
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+  border: 2rpx solid #d4ecdd;
+  border-radius: 20rpx;
+  background:
+    linear-gradient(135deg, rgba(7, 193, 96, 0.07), transparent 30%),
+    linear-gradient(315deg, rgba(95, 210, 155, 0.14), transparent 30%),
+    rgba(255, 255, 255, 0.88);
+  box-shadow: 0 24rpx 80rpx rgba(7, 193, 96, 0.12), inset 0 1rpx 0 #fff;
+  padding: 18rpx;
+}
+
+.control-group {
+  min-width: 0;
+}
+
+.language-group,
+.output-group,
+.visual-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14rpx;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  min-width: 0;
+}
+
+.field-label {
+  color: #5e5e5e;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.picker {
+  min-height: 76rpx;
+  display: flex;
+  align-items: center;
+  border: 2rpx solid #d4ecdd;
+  border-radius: 16rpx;
+  background: rgba(255, 255, 255, 0.86);
+  color: #0c3b2a;
+  padding: 12rpx 18rpx;
+  font-size: 28rpx;
+  box-shadow: inset 0 1rpx 0 #fff;
+}
+
+.switch-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  border: 2rpx solid #d4ecdd;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.76);
+  padding: 12rpx 22rpx;
+}
+
+/* —— 动作按钮（吸底：固定在第一屏底部，其余内容向下滚动）——— */
+.action-group {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14rpx;
+  margin-top: 0;
+  padding: 8rpx 10rpx;
+  border-radius: 20rpx;
+  background: rgba(246, 248, 255, 0.94);
+  backdrop-filter: blur(12rpx);
+  box-shadow: 0 -8rpx 24rpx rgba(7, 193, 96, 0.08);
+}
+
+.action-group button {
+  min-height: 76rpx;
+  width: 100%;
+  border: 0;
+  border-radius: 999rpx;
+  color: #fff;
+  font-weight: 800;
+  font-size: 30rpx;
+  box-shadow: 0 14rpx 28rpx rgba(7, 193, 96, 0.22);
+  padding: 12rpx 0;
+}
+
+.primary-action {
+  background: linear-gradient(135deg, #07c160, #06b257);
+}
+
+.danger-action {
+  background: linear-gradient(135deg, #ff6a00, #632de4);
+  color: #fff;
+}
+
+.secondary-button {
+  background: #ffffff;
+  color: #07c160;
+  border: 2rpx solid #a3dcbb;
+  box-shadow: none;
+}
+
+button[disabled] {
+  background: #d8ecdf !important;
+  color: #7fa890 !important;
+  box-shadow: none;
+}
+
+/* —— 底部音量条 + 信息 —— */
+.meter-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.meter {
+  overflow: hidden;
+  flex: 1;
+  height: 16rpx;
+  border-radius: 999rpx;
+  background: #d4ecdd;
+}
+
+.levelBar {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #07c160, #00c5ff, #5fd29b);
+  transition: width 80ms linear;
+}
+
+.line { display: block; }
+
+/* ===== 面对面模式（双话筒·一人一句 PTT，内联） ===== */
+/* face 模式下页面定高一屏、不滚动，两对话框内部滚动 */
+.app-shell.mode-face { height: 100vh; overflow: hidden; }
+
+.face-panel {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 话筒行 */
+.face-mic-row {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4rpx 0;
+}
+.face-mic-btn {
+  width: 132rpx; height: 132rpx; border-radius: 50%;
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  transition: transform .15s, opacity .15s;
+}
+.face-mic-btn.mine {
+  background: linear-gradient(135deg, #07c160, #06a854);
+  box-shadow: 0 12rpx 30rpx rgba(7, 193, 96, 0.35);
+}
+.face-mic-btn.peer {
+  background: linear-gradient(135deg, #6a4bb0, #8a63d8);
+  box-shadow: 0 12rpx 30rpx rgba(106, 75, 176, 0.35);
+}
+.face-mic-press { transform: scale(0.94); }
+.face-mic-btn.disabled { opacity: 0.32; }
+.face-mic-icon { font-size: 56rpx; line-height: 1; }
+.face-mic-btn.recording { animation: face-mic-glow 1.4s infinite ease-in-out; }
+@keyframes face-mic-glow {
+  0%, 100% { box-shadow: 0 12rpx 30rpx rgba(7,193,96,0.5), 0 0 0 16rpx rgba(7,193,96,0.16); }
+  50%      { box-shadow: 0 12rpx 30rpx rgba(7,193,96,0.5), 0 0 0 30rpx rgba(7,193,96,0.05); }
+}
+.face-mic-tag { font-size: 22rpx; color: #7a8a80; margin-top: 8rpx; }
+
+/* 双对话框 */
+.face-box {
+  flex: 1 1 0;
+  min-height: 0;
+  margin: 6rpx 0;
+  background: #fff;
+  border-radius: 22rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(20, 30, 50, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+/* 上对话框整体 180° 翻转，方便对面的人正着看 */
+.face-box-top { transform: rotate(180deg); }
+.face-box-body { flex: 1 1 0; min-height: 0; padding: 16rpx 18rpx; box-sizing: border-box; }
+.face-empty { color: #9aa8a0; font-size: 24rpx; text-align: center; margin-top: 36rpx; line-height: 1.6; }
+.face-anchor { height: 1rpx; }
+
+.face-bubble-row { display: flex; margin-bottom: 12rpx; }
+.face-bubble {
+  max-width: 85%;
+  padding: 14rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 30rpx; line-height: 1.5;
+  word-break: break-word;
+}
+.face-bubble.own { background: #07c160; color: #fff; border-top-left-radius: 6rpx; }
+.face-bubble.trans { background: #f1ecfa; color: #3a2d5c; border-top-left-radius: 6rpx; }
+.face-bubble.draft { opacity: 0.7; }
+
+/* 中间语种条 */
+.face-lang-bar {
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  gap: 18rpx;
+  padding: 6rpx 0;
+}
+.face-lang-pill {
+  font-size: 26rpx; font-weight: 600; color: #07c160;
+  background: #e6f7ee; padding: 10rpx 26rpx; border-radius: 999rpx;
+}
+.face-lang-pill.alt { color: #6a4bb0; background: #f1ecfa; }
+.face-lang-swap {
+  font-size: 38rpx; color: #8a8f99; line-height: 1;
+  width: 60rpx; height: 60rpx; border-radius: 50%;
+  background: #fff; box-shadow: 0 2rpx 8rpx rgba(0,0,0,.08);
+  display: flex; align-items: center; justify-content: center;
+}
+.face-lang-swap:active { opacity: 0.5; }
+
+/* 音量条 + 清空 */
+.face-vol {
+  width: 52%; height: 8rpx; border-radius: 6rpx;
+  background: #e6e9ee; margin-top: 12rpx; overflow: hidden;
+}
+.face-vol-fill { height: 100%; background: #07c160; border-radius: 6rpx; transition: width .08s linear; }
+.face-clear-btn {
+  margin-top: 10rpx; font-size: 24rpx; color: #9aa8a0;
+  padding: 6rpx 24rpx; border-radius: 999rpx; background: #f0f2f5;
+}
+
+/* 设置 Modal */
+.face-mask {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center; z-index: 99;
+}
+.face-card {
+  width: 84vw; max-width: 600rpx; background: #fff;
+  border-radius: 28rpx; padding: 40rpx 36rpx;
+  display: flex; flex-direction: column; gap: 18rpx;
+}
+.face-card-title { font-size: 34rpx; font-weight: 700; color: #0c3b2a; }
+.face-set-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22rpx 0; border-bottom: 2rpx solid #eef4f0;
+}
+.face-set-label { font-size: 30rpx; color: #0c3b2a; }
+.face-set-value { font-size: 30rpx; color: #07c160; font-weight: 600; }
+.face-set-hint { font-size: 22rpx; color: #9aa8a0; }
+.face-card-btn {
+  height: 84rpx; line-height: 84rpx; border-radius: 16rpx;
+  font-size: 30rpx; font-weight: 500; background: #07c160; color: #fff;
+  border: none; margin: 0;
+}
+.face-card-btn::after { border: none; }

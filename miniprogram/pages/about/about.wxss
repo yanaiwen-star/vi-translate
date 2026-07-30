@@ -1,0 +1,123 @@
+/* pages/about/about.wxss */
+.page { padding: 32rpx; min-height: 100vh; }
+
+/* Hero */
+.about-hero {
+  text-align: center;
+  background: linear-gradient(150deg, #0D7C5C 0%, #0A6450 100%);
+  color: #fff;
+  border: none;
+}
+.ah-logo {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 22rpx;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52rpx;
+  font-weight: 700;
+  margin: 0 auto;
+}
+.ah-name {
+  font-size: 34rpx;
+  font-weight: 700;
+  margin-top: 24rpx;
+}
+.ah-en {
+  font-size: 22rpx;
+  opacity: 0.85;
+  margin-top: 6rpx;
+  letter-spacing: 2rpx;
+}
+.ah-slogan {
+  font-size: 26rpx;
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 2rpx solid rgba(255, 255, 255, 0.2);
+}
+
+/* Section */
+.section { margin-top: 24rpx; }
+.sec-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 20rpx;
+  padding-left: 20rpx;
+  border-left: 8rpx solid var(--primary);
+  line-height: 1.2;
+}
+.sec-text {
+  font-size: 27rpx;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  margin-bottom: 16rpx;
+}
+.sec-text:last-child { margin-bottom: 0; }
+
+/* Credentials */
+.cred-list { display: flex; flex-direction: column; gap: 14rpx; }
+.cred-item { display: flex; align-items: baseline; gap: 12rpx; }
+.cred-dot { color: var(--primary); font-weight: 700; }
+.cred-text {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Contact */
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 24rpx 0;
+  border-bottom: 2rpx solid var(--border);
+}
+.contact-item:last-child { border-bottom: none; }
+.ci-icon {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 16rpx;
+  background: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+}
+.ci-body { flex: 1; }
+.ci-label {
+  font-size: 24rpx;
+  color: var(--text-hint);
+}
+.ci-value {
+  font-size: 28rpx;
+  color: var(--text-primary);
+  margin-top: 6rpx;
+  line-height: 1.4;
+}
+.ci-arrow {
+  font-size: 26rpx;
+  color: var(--primary);
+}
+
+/* Call button */
+.btn-call {
+  margin-top: 32rpx;
+  background: var(--primary);
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 600;
+  border-radius: 999rpx;
+  padding: 22rpx 0;
+  border: none;
+}
+.btn-call::after { border: none; }
+
+.copyright {
+  text-align: center;
+  font-size: 22rpx;
+  color: var(--text-hint);
+  margin-top: 32rpx;
+}

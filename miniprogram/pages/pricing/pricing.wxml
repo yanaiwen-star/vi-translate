@@ -1,0 +1,54 @@
+<!--pages/pricing/pricing.wxml-->
+<view class="page">
+  <!-- 顶部说明 -->
+  <view class="hero">
+    <view class="hero-title">同传时长包</view>
+    <view class="hero-sub">每天免费 {{freeMinutes}} 分钟实时同传，用超了再按需购买 · 购买后长期有效</view>
+  </view>
+
+  <!-- 免费层卡片 -->
+  <view class="free-card">
+    <view class="free-left">
+      <view class="free-tag">免费层</view>
+      <view class="free-desc">每天 {{freeMinutes}} 分钟免费同传</view>
+      <view class="free-desc">次日 0 点自动重置，无需付费</view>
+    </view>
+    <view class="free-right">
+      <text class="free-num">{{freeMinutes}}</text>
+      <text class="free-unit">分钟 / 天</text>
+    </view>
+  </view>
+
+  <view class="section-title">选择语音包</view>
+
+  <view class="pack-list" wx:if="{{!loading}}">
+    <view
+      class="pack-card {{item.recommend ? 'recommend' : ''}}"
+      wx:for="{{packs}}"
+      wx:key="id"
+    >
+      <view class="ribbon" wx:if="{{item.recommend}}">推荐</view>
+      <view class="pack-head">
+        <view class="pack-name">{{item.name}}</view>
+        <view class="pack-highlight">{{item.highlight}}</view>
+      </view>
+      <view class="pack-minutes"><text class="min-num">{{item.minutes}}</text><text class="min-unit">分钟</text></view>
+      <view class="pack-permin">约 {{item.perMin}} 元/分钟</view>
+      <view class="pack-footer">
+        <view class="pack-price"><text class="rmb">¥</text>{{item.priceYuan}}</view>
+        <button class="buy-btn {{item.recommend ? 'primary' : ''}}" data-plan="{{item.id}}" bindtap="onBuy">立即购买</button>
+      </view>
+    </view>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}"><text>加载中...</text></view>
+
+  <!-- 计费说明 -->
+  <view class="tips">
+    <view class="tips-title">计费说明</view>
+    <view class="tips-item">· 每天赠送 {{freeMinutes}} 分钟免费同传，次日自动重置。</view>
+    <view class="tips-item">· 语音包按实际同传时长扣减分钟，购买后长期有效。</view>
+    <view class="tips-item">· 开启语音播报（音色克隆）与拍照翻译不额外单独计费。</view>
+    <view class="tips-item">· 实际时长以系统结算为准。</view>
+  </view>
+</view>

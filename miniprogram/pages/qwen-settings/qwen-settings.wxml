@@ -1,0 +1,33 @@
+<view class="page">
+  <view class="title">选择同传使用方式</view>
+
+  <view class="mode-card {{mode === 'platform' ? 'selected' : ''}}" bindtap="usePlatform">
+    <view class="mode-head">
+      <text class="mode-name">平台托管服务</text>
+      <text class="radio">{{mode === 'platform' ? '●' : '○'}}</text>
+    </view>
+    <view class="desc">无需配置，使用平台赠送或购买的同传分钟。</view>
+  </view>
+
+  <view class="mode-card {{mode === 'byok' ? 'selected' : ''}}" bindtap="useByok">
+    <view class="mode-head">
+      <text class="mode-name">自备百炼额度</text>
+      <text class="radio">{{mode === 'byok' ? '●' : '○'}}</text>
+    </view>
+    <view class="desc">使用您自己的阿里云百炼 API Key，不扣平台同传分钟。</view>
+    <view class="saved" wx:if="{{configured}}">已保存：{{keyMasked}}</view>
+  </view>
+
+  <view class="form-card">
+    <view class="form-title">配置百炼 API Key</view>
+    <view class="notice">中国内地新用户通常可获得限时免费额度；额度到期或用完后，阿里云可能按其规则收费。</view>
+    <button class="link-btn" bindtap="copyApplyUrl">复制百炼 API Key 申请地址</button>
+    <picker mode="selector" range="{{regions}}" range-key="label" value="{{regionIndex}}" bindchange="onRegionChange">
+      <view class="picker">地域：{{regions[regionIndex].label}} ›</view>
+    </picker>
+    <input class="key-input" password placeholder="粘贴 sk- 开头的 API Key" value="{{apiKey}}" bindinput="onKeyInput" />
+    <view class="privacy">Key 将加密保存在服务器；小程序不会再次读取或显示完整 Key。</view>
+    <button class="save-btn" loading="{{saving}}" disabled="{{saving}}" bindtap="saveKey">保存并使用自备额度</button>
+    <button wx:if="{{configured}}" class="delete-btn" bindtap="deleteKey">删除已保存的 Key</button>
+  </view>
+</view>

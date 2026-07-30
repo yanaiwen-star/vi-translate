@@ -1,0 +1,5 @@
+<view class="matched-page">
+  <view class="notice">以下需求只与你公开的语种和服务类型匹配。响应后由需求发布者决定是否开放联系方式。</view>
+  <view class="state" wx:if="{{loading}}">正在加载…</view><view class="state" wx:elif="{{error}}"><text>{{error}}</text><button bindtap="onRetry">重试</button></view><view class="state" wx:elif="{{items.length === 0}}">暂时没有匹配需求</view>
+  <view class="need-card" wx:for="{{items}}" wx:key="id"><view class="pair">{{item.source_lang}} → {{item.target_lang}}</view><view class="note">{{item.note}}</view><view class="meta">{{item.city || '线上'}} · {{item.service_type}} · {{item.response_count}}/{{item.response_limit}} 人已响应</view><button data-id="{{item.id}}" loading="{{respondingId === item.id}}" bindtap="onRespond">我愿意联系</button></view>
+</view>

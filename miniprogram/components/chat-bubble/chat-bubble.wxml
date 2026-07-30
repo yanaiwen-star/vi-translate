@@ -1,0 +1,10 @@
+<!--components/chat-bubble/chat-bubble.wxml-->
+<view class="bubble {{side}} {{isSource ? 'source' : 'target'}}">
+  <view class="bubble-text">{{text}}</view>
+  <view class="bubble-meta" wx:if="{{!isSource}}">
+    <text class="meta-label">译文</text>
+  </view>
+  <view class="bubble-meta" wx:else>
+    <text class="meta-label">原文</text>
+  </view>
+</view>

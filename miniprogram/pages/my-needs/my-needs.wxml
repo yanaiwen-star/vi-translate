@@ -1,0 +1,5 @@
+<view class="needs-page">
+  <view class="privacy">这里只保存结构化服务需求，不保存待翻译原文或文件；需求7天后自动删除。</view>
+  <view class="state" wx:if="{{loading}}">正在加载…</view><view class="state" wx:elif="{{error}}"><text>{{error}}</text><button bindtap="onRetry">重试</button></view><view class="state" wx:elif="{{items.length === 0}}"><text>暂时没有翻译需求</text><button bindtap="onPublish">发布需求</button></view>
+  <view class="need-card" wx:for="{{items}}" wx:key="id"><view class="top"><text class="pair">{{item.source_lang}} → {{item.target_lang}}</text><text class="status">{{item.statusLabel}}</text></view><view class="note">{{item.note}}</view><view class="meta">{{item.city || '线上'}} · 已响应 {{item.response_count}}/{{item.response_limit}} 人</view><view class="meta">有效期至 {{item.expires_at}}</view><button wx:if="{{item.status === 'open'}}" data-id="{{item.id}}" bindtap="onWithdraw">撤回并删除</button></view>
+</view>

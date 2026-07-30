@@ -1,0 +1,31 @@
+<!--pages/pay/pay.wxml-->
+<view class="page">
+  <view class="card">
+    <view class="title">微信支付</view>
+    <view class="sub">悦迅翻译 · 同传时长包</view>
+
+    <view wx:if="{{loading}}" class="state">
+      <view class="spinner"></view>
+      <view class="state-text">正在准备支付…</view>
+    </view>
+
+    <view wx:elif="{{done}}" class="state">
+      <view class="ok-icon">✓</view>
+      <view class="state-text ok">支付成功</view>
+      <view class="state-desc">时长已充值到你的账户</view>
+      <button class="btn primary" bindtap="onBackHome">返回同传</button>
+    </view>
+
+    <view wx:elif="{{error}}" class="state">
+      <view class="err-icon">!</view>
+      <view class="state-text err">{{error}}</view>
+      <button class="btn primary" bindtap="onRetry">重新支付</button>
+      <button class="btn ghost" bindtap="onBackHome">返回首页</button>
+    </view>
+
+    <view wx:else class="state">
+      <view class="spinner"></view>
+      <view class="state-text">正在调起微信支付…</view>
+    </view>
+  </view>
+</view>

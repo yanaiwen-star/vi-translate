@@ -1,0 +1,99 @@
+<view class="face-page">
+
+  <!-- 顶部：状态 + 设置 -->
+  <view class="face-topbar">
+    <view class="face-status-pill {{statusClass}}">
+      <view class="face-status-dot"></view>
+      <text>{{statusText}}</text>
+    </view>
+    <view class="face-settings" bindtap="onToggleSettings">⚙</view>
+  </view>
+
+  <!-- 上话筒（对方 peer）：手机顶端，靠对方一侧 -->
+  <view class="mic-row">
+    <view class="mic-btn peer {{activeSide === 'peer' ? 'recording' : ''}} {{activeSide && activeSide !== 'peer' ? 'disabled' : ''}}"
+          data-side="peer"
+          bindtouchstart="onMicDown" bindtouchend="onMicUp" bindtouchcancel="onMicUp"
+          hover-class="mic-press">
+      <text class="mic-icon">🎙</text>
+    </view>
+    <view class="mic-side-tag">{{peerLangLabel}}·按住说</view>
+  </view>
+
+  <!-- 上对话框（对方视角，180°翻转；显示对方语言 peerLang） -->
+  <view class="panel panel-top">
+    <view class="panel-body-wrap">
+      <scroll-view scroll-y class="panel-body" scroll-into-view="{{topView}}" scroll-with-animation>
+        <block wx:if="{{turns.length || curActive}}">
+          <view wx:for="{{turns}}" wx:key="id" class="bubble-row">
+            <view class="bubble {{item.side === 'peer' ? 'own' : 'trans'}}">{{item.side === 'mine' ? item.tgt : item.src}}</view>
+          </view>
+          <view wx:if="{{curActive && (cur.side === 'mine' ? cur.tgt : cur.src)}}" class="bubble-row">
+            <view class="bubble {{cur.side === 'peer' ? 'own' : 'trans'}} draft">{{cur.side === 'mine' ? cur.tgt : cur.src}}</view>
+          </view>
+        </block>
+        <view wx:else class="panel-empty">对方按住上方话筒说{{peerLangLabel}}，这里给对方看</view>
+        <view id="te{{tick}}" class="anchor"></view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 中间：语种选择 + 互换 -->
+  <view class="lang-bar">
+    <view class="lang-pill" bindtap="onToggleSettings">{{myLangLabel}}</view>
+    <view class="lang-swap" bindtap="onSwapLangs">⇄</view>
+    <view class="lang-pill alt" bindtap="onToggleSettings">{{peerLangLabel}}</view>
+  </view>
+
+  <!-- 下对话框（我的视角；显示我的语言 myLang） -->
+  <view class="panel panel-bottom">
+    <view class="panel-body-wrap">
+      <scroll-view scroll-y class="panel-body" scroll-into-view="{{bottomView}}" scroll-with-animation>
+        <block wx:if="{{turns.length || curActive}}">
+          <view wx:for="{{turns}}" wx:key="id" class="bubble-row">
+            <view class="bubble {{item.side === 'mine' ? 'own' : 'trans'}}">{{item.side === 'mine' ? item.src : item.tgt}}</view>
+          </view>
+          <view wx:if="{{curActive && (cur.side === 'mine' ? cur.src : cur.tgt)}}" class="bubble-row">
+            <view class="bubble {{cur.side === 'mine' ? 'own' : 'trans'}} draft">{{cur.side === 'mine' ? cur.src : cur.tgt}}</view>
+          </view>
+        </block>
+        <view wx:else class="panel-empty">按住下方话筒说{{myLangLabel}}，这里给你看</view>
+        <view id="be{{tick}}" class="anchor"></view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 下话筒（我 mine）+ 音量 + 清空 -->
+  <view class="mic-row">
+    <view class="mic-btn mine {{activeSide === 'mine' ? 'recording' : ''}} {{activeSide && activeSide !== 'mine' ? 'disabled' : ''}}"
+          data-side="mine"
+          bindtouchstart="onMicDown" bindtouchend="onMicUp" bindtouchcancel="onMicUp"
+          hover-class="mic-press">
+      <text class="mic-icon">🎙</text>
+    </view>
+    <view class="mic-side-tag">{{myLangLabel}}·按住说</view>
+    <view class="vol"><view class="vol-fill" style="width: {{levelPct}}%"></view></view>
+    <view class="clear-btn" bindtap="onClear" wx:if="{{turns.length}}">清空</view>
+  </view>
+
+  <!-- 设置 modal：两个语种选择 -->
+  <view wx:if="{{showSettings}}" class="entry-mask" bindtap="onSettingsClose">
+    <view class="entry-card" catchtap="noop">
+      <view class="entry-title">设置语种</view>
+      <view class="settings-row">
+        <text class="settings-label">我说的（下话筒）</text>
+        <picker mode="selector" range="{{langOptions}}" range-key="label" value="{{myLangIndex}}" bindchange="onChangeMyLang">
+          <view class="settings-value">{{langOptions[myLangIndex].label}}</view>
+        </picker>
+      </view>
+      <view class="settings-row">
+        <text class="settings-label">对方说的（上话筒）</text>
+        <picker mode="selector" range="{{langOptions}}" range-key="label" value="{{peerLangIndex}}" bindchange="onChangePeerLang">
+          <view class="settings-value">{{langOptions[peerLangIndex].label}}</view>
+        </picker>
+      </view>
+      <view class="settings-hint">中间 ⇄ 可一键互换两种语言</view>
+      <button class="entry-btn" bindtap="onSettingsClose">完成</button>
+    </view>
+  </view>
+</view>

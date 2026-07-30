@@ -1,0 +1,14 @@
+.page { min-height: 100vh; box-sizing: border-box; padding: 28rpx; background: #f5f7fa; color: #1f2937; }
+.title { font-size: 36rpx; font-weight: 700; margin: 12rpx 0 24rpx; }
+.mode-card, .form-card { background: #fff; border: 2rpx solid #e5e7eb; border-radius: 20rpx; padding: 28rpx; margin-bottom: 20rpx; }
+.mode-card.selected { border-color: #07c160; box-shadow: 0 6rpx 20rpx rgba(7,193,96,.10); }
+.mode-head { display: flex; justify-content: space-between; align-items: center; }
+.mode-name, .form-title { font-size: 31rpx; font-weight: 700; }
+.radio { color: #07c160; font-size: 34rpx; }
+.desc, .notice, .privacy { color: #6b7280; font-size: 25rpx; line-height: 1.6; margin-top: 12rpx; }
+.saved { color: #078b47; font-size: 24rpx; margin-top: 14rpx; }
+.notice { padding: 18rpx; background: #fff8e6; border-radius: 12rpx; color: #8a5a00; }
+.link-btn { margin: 20rpx 0; color: #078b47; background: #ecfdf3; font-size: 26rpx; }
+.picker, .key-input { box-sizing: border-box; width: 100%; padding: 24rpx; margin-top: 18rpx; border: 2rpx solid #d1d5db; border-radius: 12rpx; background: #fff; font-size: 27rpx; }
+.save-btn { margin-top: 24rpx; color: #fff; background: #07c160; font-size: 28rpx; }
+.delete-btn { margin-top: 16rpx; color: #d93025; background: #fff; font-size: 27rpx; }
