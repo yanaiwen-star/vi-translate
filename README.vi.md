@@ -6,6 +6,12 @@
 >
 > Công cụ dịch thuật công ích, tiện dân cho các tình huống xuyên biên giới Trung–Việt: phiên dịch song song thời gian thực vừa nói vừa dịch, hội thoại mặt đối mặt hai micro, dịch qua ảnh chụp, dịch văn bản, cùng danh bạ kết nối phiên dịch viên / cơ hội kinh doanh hoàn toàn miễn phí.
 
+## 📲 Quét mã trải nghiệm
+
+<img src="assets/qrcode-miniprogram.jpg" alt="Mã QR Mini Program Duyệt Dịch" width="200"/>
+
+Mở WeChat, quét mã QR bên trên để trải nghiệm Mini Program Duyệt Dịch.
+
 ## ✨ Tổng quan tính năng
 
 ### Năng lực dịch thuật (trang "Phiên dịch" trong Mini Program, 4 chế độ chuyển đổi nội tuyến)

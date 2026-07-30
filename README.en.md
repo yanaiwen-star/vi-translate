@@ -6,6 +6,12 @@
 >
 > A free public-service translation tool for China–Vietnam cross-border scenarios: real-time simultaneous interpretation while you speak, face-to-face dual-mic conversation, photo translation, text translation, plus a free translator/business matching directory.
 
+## 📲 Scan to try
+
+<img src="assets/qrcode-miniprogram.jpg" alt="YueTranslate Mini Program QR code" width="200"/>
+
+Open WeChat, scan the QR code above, and try the YueTranslate Mini Program.
+
 ## ✨ Features
 
 ### Translation capabilities (Mini Program "Interpret" page, 4 inline modes)
