@@ -1,4 +1,4 @@
-# 悦翻译
+# 悦迅翻译
 
 **简体中文** | [English](README.en.md) | [Tiếng Việt](README.vi.md)
 
@@ -8,9 +8,9 @@
 
 ## 📲 扫码体验
 
-<img src="assets/qrcode-miniprogram.jpg" alt="悦翻译小程序码" width="200"/>
+<img src="assets/qrcode-miniprogram.jpg" alt="悦迅翻译小程序码" width="200"/>
 
-微信扫一扫，即可打开「悦翻译」小程序体验版。
+微信扫一扫，即可打开「悦迅翻译」小程序体验版。
 
 ## ✨ 功能一览
 
@@ -171,4 +171,4 @@ pytest tests/
 
 ---
 
-*悦翻译 —— 让中越沟通没有语言障碍。*
+*悦迅翻译 —— 让中越沟通没有语言障碍。*

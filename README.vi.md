@@ -1,4 +1,4 @@
-# Duyệt Dịch (悦翻译 / YueTranslate)
+# Yuexun Translation (悦迅翻译)
 
 [简体中文](README.md) | [English](README.en.md) | **Tiếng Việt**
 
@@ -8,9 +8,9 @@
 
 ## 📲 Quét mã trải nghiệm
 
-<img src="assets/qrcode-miniprogram.jpg" alt="Mã QR Mini Program Duyệt Dịch" width="200"/>
+<img src="assets/qrcode-miniprogram.jpg" alt="Mã QR Mini Program Yuexun Translation" width="200"/>
 
-Mở WeChat, quét mã QR bên trên để trải nghiệm Mini Program Duyệt Dịch.
+Mở WeChat, quét mã QR bên trên để trải nghiệm Mini Program Yuexun Translation.
 
 ## ✨ Tổng quan tính năng
 
@@ -171,4 +171,4 @@ Bản quyền © Yuexun Translation (Duyệt Tấn). Mã nguồn công khai đ�
 
 ---
 
-*Duyệt Dịch — để giao tiếp Trung–Việt không còn rào cản ngôn ngữ.*
+*Yuexun Translation — để giao tiếp Trung–Việt không còn rào cản ngôn ngữ.*

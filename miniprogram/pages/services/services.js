@@ -129,10 +129,10 @@ Page({
     wx.navigateTo({ url: '/pages/translator-edit/translator-edit' });
   },
   onShareAppMessage() {
-    return { title: '悦翻译｜免费找译员和翻译公司', path: '/pages/services/services' };
+    return { title: '悦迅翻译｜免费找译员和翻译公司', path: '/pages/services/services' };
   },
   onShareTimeline() {
-    return { title: '悦翻译｜免费找译员和翻译公司' };
+    return { title: '悦迅翻译｜免费找译员和翻译公司' };
   }
 });
 

@@ -1,4 +1,4 @@
-# YueTranslate (悦翻译)
+# Yuexun Translation (悦迅翻译)
 
 [简体中文](README.md) | **English** | [Tiếng Việt](README.vi.md)
 
@@ -8,9 +8,9 @@
 
 ## 📲 Scan to try
 
-<img src="assets/qrcode-miniprogram.jpg" alt="YueTranslate Mini Program QR code" width="200"/>
+<img src="assets/qrcode-miniprogram.jpg" alt="Yuexun Translation Mini Program QR code" width="200"/>
 
-Open WeChat, scan the QR code above, and try the YueTranslate Mini Program.
+Open WeChat, scan the QR code above, and try the Yuexun Translation Mini Program.
 
 ## ✨ Features
 
@@ -171,4 +171,4 @@ Copyright © Yuexun Translation. Source code is public for learning and referenc
 
 ---
 
-*YueTranslate — removing the language barrier between China and Vietnam.*
+*Yuexun Translation — removing the language barrier between China and Vietnam.*
