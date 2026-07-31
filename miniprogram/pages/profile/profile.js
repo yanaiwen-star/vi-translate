@@ -10,9 +10,7 @@ Page({
     userId: '',
     editing: false,
     draftNickname: '',
-    quotaMinutes: 0,
-    purchasedMinutes: 0,
-    isMember: false
+    quotaMinutes: 0
   },
 
   onShow() {
@@ -24,7 +22,6 @@ Page({
       // 后端 user_id 格式 wxmp_{openid}@mp.local（见 app/auth/wechat_identity.py:_placeholder_email）
       userId: app.globalData.openid ? `wxmp_${app.globalData.openid}@mp.local` : ''
     });
-    this.refreshMember();
   },
 
   // 复制用户ID：便于在「我的」页给运营/客服报自己的 user_id 以便后台对齐
@@ -80,6 +77,8 @@ Page({
         app.globalData.nickname = r.nickname || '';
         this.setData({ nickname: r.nickname || '', editing: false, draftNickname: '' });
         wx.showToast({ title: '已保存', icon: 'success' });
+        // 昵称奖励（+10 分钟）已落库，刷新剩余时长展示
+        this.refreshQuota();
       } else {
         wx.hideLoading();
         wx.showToast({ title: '保存失败', icon: 'none' });
@@ -90,14 +89,22 @@ Page({
     }
   },
 
+  // 拉取唯一「剩余同传时长」：后端 /billing/quota 返回的 available_minutes
+  // 已汇总所有池（注册30 + 昵称10 + 手机20 + 已购时长包），不区分免费/付费。
   refreshQuota() {
-    const { used, limit } = app.globalData.freeQuota;
-    const left = Math.max(0, limit - used);
-    this.setData({ quotaMinutes: (left / 60).toFixed(1) });
+    request('GET', '/billing/quota', {}, true).then((res) => {
+      if (res && typeof res.available_minutes === 'number') {
+        this.setData({ quotaMinutes: Math.max(0, res.available_minutes) });
+      }
+    }).catch(() => {});
   },
 
   onOpenPricing() {
     wx.navigateTo({ url: '/pages/pricing/pricing' });
+  },
+
+  onOpenQwenSettings() {
+    wx.navigateTo({ url: '/pages/qwen-settings/qwen-settings' });
   },
 
   onFeedback() {
@@ -142,7 +149,8 @@ Page({
           app.globalData.openid = r.openid || app.globalData.openid;
         }
         wx.showToast({ title: '绑定成功', icon: 'success' });
-        this.refreshMember();
+        // 手机号奖励（+20 分钟）已落库，刷新剩余时长展示
+        this.refreshQuota();
       } else {
         wx.showToast({ title: '绑定失败', icon: 'none' });
       }
@@ -150,18 +158,5 @@ Page({
       wx.hideLoading();
       wx.showToast({ title: (err && err.message) || '绑定失败', icon: 'none' });
     });
-  },
-
-  // 查询已购余量（分钟）与会员状态
-  async refreshMember() {
-    try {
-      const res = await request('GET', '/billing/quota', {}, true);
-      if (res) {
-        this.setData({
-          isMember: !!res.is_member,
-          purchasedMinutes: Math.max(0, Math.round(res.available_minutes || 0))
-        });
-      }
-    } catch (e) { /* 未登录或网络异常时忽略 */ }
   }
 });

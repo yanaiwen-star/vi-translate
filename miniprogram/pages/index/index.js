@@ -321,8 +321,8 @@ Page({
     }
     if (!(await app.checkQuota())) {
       wx.showModal({
-        title: '免费额度已用完',
-        content: '免费 30 分钟已用完，可购买语音包继续使用',
+        title: '同传时长已用完',
+        content: '同传时长已用完，可购买语音包继续使用',
         showCancel: false
       });
       return;

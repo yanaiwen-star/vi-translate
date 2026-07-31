@@ -28,7 +28,17 @@ class User(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
-    free_quota_chars: Mapped[int] = mapped_column(Integer, default=5000)
+    # 运营手动赠送 / 绑定奖励累计池（字符等值，CHARS_PER_MINUTE=2000）。
+    # 注册赠送仅来自一次性 FREE_TOTAL_MINUTES=30（见 free_total_used_chars），
+    # 此字段默认不额外送；昵称(+10分钟)/手机号(+20分钟)奖励与运营补偿都记入这里。
+    free_quota_chars: Mapped[int] = mapped_column(Integer, default=0)
+    # 绑定昵称 / 手机号的一次性奖励是否已发放（防重复送）
+    nickname_reward_given: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="0", nullable=False
+    )
+    phone_reward_given: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="0", nullable=False
+    )
     # 一次性免费同传额度的累计已用量（字符等值，CHARS_PER_MINUTE=2000）。
     # 存库而非 Redis：Redis 配置了 allkeys-lru 淘汰策略，永久 key 可能被逐出，
     # 会让已用完的免费额度「复活」。

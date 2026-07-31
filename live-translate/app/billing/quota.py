@@ -34,15 +34,23 @@ TOKENS_PER_CHAR = 1.5              # ~1.5 Chinese chars per token
 # 1 分钟实时语音翻译 ≈ 折算多少「字符额度」。后台「赠送时长」与剩余时长展示
 # 统一用此换算，使运营视角的「分钟」与底层字符池对齐。
 CHARS_PER_MINUTE = 2000
+# 绑定奖励（一次性，不重复送）：昵称 +10 分钟，手机号 +20 分钟。
+# 计入 users.free_quota_chars（与运营手动赠送同一池，按字符等值累加）。
+NICKNAME_REWARD_MINUTES = 10
+PHONE_REWARD_MINUTES = 20
+NICKNAME_REWARD_CHARS = NICKNAME_REWARD_MINUTES * CHARS_PER_MINUTE
+PHONE_REWARD_CHARS = PHONE_REWARD_MINUTES * CHARS_PER_MINUTE
 # 墙钟计费的唯一换算基准：流逝 N 秒 -> N/60*CHARS_PER_MINUTE 个「字符额度」被消耗。
 # 套餐/赠送的「分钟」在授权时即乘以该系数存入字符池，因此此处无需再做换算。
 WALLCLOCK_TICK_SECONDS = 5         # 墙钟计量器轮询间隔（秒）
 # 免费层：每个账号「一次性」赠送 N 分钟墙钟同传（终身累计，用完不再重置）。
 # 已用量记在 users.free_total_used_chars（数据库），不放 Redis：生产 Redis 用
 # allkeys-lru 淘汰策略，永久 key 可能被逐出，会让用完的免费额度「复活」。
-FREE_TOTAL_MINUTES = getattr(
-    settings, "free_total_minutes", getattr(settings, "free_daily_minutes", 30)
-)
+# 注册一次性赠送的墙钟分钟数（终身累计，用完不重置）。
+# 旧字段 free_daily_minutes 是「每日重置」时代的遗留，语义已废弃、不再继承，
+# 否则生产 .env 里残留的 free_daily_minutes=20 会把赠送额度错误地压成 20 分钟
+#（之前「一会20一会30」的跳动就源于后端给20、前端硬显30 的对不齐）。
+FREE_TOTAL_MINUTES = int(getattr(settings, "free_total_minutes", 30))
 FREE_TOTAL_CHARS = FREE_TOTAL_MINUTES * CHARS_PER_MINUTE
 
 # 旧名保留为别名，避免历史引用（脚本 / 后台）直接崩掉。

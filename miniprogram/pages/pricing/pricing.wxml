@@ -3,19 +3,19 @@
   <!-- 顶部说明 -->
   <view class="hero">
     <view class="hero-title">同传时长包</view>
-    <view class="hero-sub">免费 {{freeMinutes}} 分钟实时同传，用超了再按需购买 · 购买后长期有效</view>
+    <view class="hero-sub">注册即送 {{freeMinutes}} 分钟实时同传，用超了再按需购买 · 购买后长期有效</view>
   </view>
 
-  <!-- 免费层卡片 -->
+  <!-- 赠送时长卡片 -->
   <view class="free-card">
     <view class="free-left">
-      <view class="free-tag">免费层</view>
-      <view class="free-desc">免费 {{freeMinutes}} 分钟同传</view>
+      <view class="free-tag">赠送时长</view>
+      <view class="free-desc">赠送 {{freeMinutes}} 分钟同传</view>
       <view class="free-desc">注册即送，无需付费</view>
     </view>
     <view class="free-right">
       <text class="free-num">{{freeMinutes}}</text>
-      <text class="free-unit">分钟 / 天</text>
+      <text class="free-unit">分钟</text>
     </view>
   </view>
 
@@ -46,7 +46,7 @@
   <!-- 计费说明 -->
   <view class="tips">
     <view class="tips-title">计费说明</view>
-    <view class="tips-item">· 赠送 {{freeMinutes}} 分钟免费同传。</view>
+    <view class="tips-item">· 注册即送 {{freeMinutes}} 分钟同传。</view>
     <view class="tips-item">· 语音包按实际同传时长扣减分钟，购买后长期有效。</view>
     <view class="tips-item">· 开启语音播报（音色克隆）与拍照翻译不额外单独计费。</view>
     <view class="tips-item">· 实际时长以系统结算为准。</view>

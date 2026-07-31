@@ -26,6 +26,7 @@ from app.auth.password import hash_password
 from app.config import settings
 from app.db import get_db, get_redis
 from app.models import User
+from app.billing.quota import NICKNAME_REWARD_CHARS, PHONE_REWARD_CHARS
 
 router = APIRouter(prefix="/api/wx", tags=["wx"])
 
@@ -176,7 +177,16 @@ def bind_phone(
     if not user:
         raise HTTPException(status_code=401, detail="用户不存在。")
     # Bind + merge with any existing account sharing this phone (web included).
-    return link_phone(db, user, phone)
+    result = link_phone(db, user, phone)
+    # 绑定手机号一次性奖励 +20 分钟（防重复送）：link_phone 在撞库时会把调用方
+    # 账户合并删掉（loser），所以不能直接加在上面的 user 上，必须按手机号重查
+    # 存活账户再发放，确保奖励落到最终保留的那一个身份上。
+    survivor = db.query(User).filter(User.phone == phone).first()
+    if survivor and not survivor.phone_reward_given:
+        survivor.free_quota_chars = (survivor.free_quota_chars or 0) + PHONE_REWARD_CHARS
+        survivor.phone_reward_given = True
+        db.commit()
+    return result
 
 
 @router.get("/me")
@@ -223,6 +233,11 @@ def update_profile(
             if collision:
                 raise HTTPException(status_code=409, detail="昵称已被占用，请换一个。")
         user.nickname = nickname or None
+        # 绑定昵称一次性奖励 +10 分钟（防重复送）：记入 free_quota_chars 长期池，
+        # 与运营手动赠送共用池。仅首次设置非空昵称时发放，清空/重设不再送。
+        if nickname and not user.nickname_reward_given:
+            user.free_quota_chars = (user.free_quota_chars or 0) + NICKNAME_REWARD_CHARS
+            user.nickname_reward_given = True
     db.commit()
     return {"nickname": user.nickname or ""}
 

@@ -5,15 +5,14 @@
     <view class="avatar">🌐</view>
     <view class="user-info">
       <view class="user-name">{{nickname || '中越同传用户'}}</view>
-      <view class="user-sub">{{isMember ? '时长包用户' : '免费用户'}}{{openid ? ' · 已登录' : ''}}</view>
+      <view class="user-sub">普通用户{{openid ? ' · 已登录' : ''}}</view>
     </view>
   </view>
 
-  <!-- 免费配额（一次性，用完不再重置） -->
+  <!-- 剩余同传时长（唯一数字：注册30 + 昵称10 + 手机20 + 已购时长包，不区分免费/付费） -->
   <view class="card quota">
     <view class="quota-info">
-      <view class="quota-left">免费剩余 <text class="num">{{quotaMinutes}}</text> 分钟</view>
-      <view class="quota-sub" wx:if="{{purchasedMinutes > 0}}">已购时长包剩余 <text class="num">{{purchasedMinutes}}</text> 分钟</view>
+      <view class="quota-left">剩余同传时长 <text class="num">{{quotaMinutes}}</text> 分钟</view>
     </view>
     <view class="quota-link" bindtap="onOpenPricing">购买时长包 ›</view>
   </view>
@@ -27,6 +26,10 @@
     <view class="setting-item" bindtap="onCopyUserId">
       <text class="setting-label">我的用户ID</text>
       <view class="setting-value userId-value">{{userId || '未登录'}}<text class="arrow">›</text></view>
+    </view>
+    <view class="setting-item" bindtap="onOpenQwenSettings">
+      <text class="setting-label">自备百炼额度（我的Key）</text>
+      <text class="arrow">›</text>
     </view>
     <view class="setting-item">
       <text class="setting-label">绑定手机号</text>
