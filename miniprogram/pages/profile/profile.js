@@ -91,7 +91,7 @@ Page({
   },
 
   refreshQuota() {
-    const { used, limit } = app.globalData.dailyQuota;
+    const { used, limit } = app.globalData.freeQuota;
     const left = Math.max(0, limit - used);
     this.setData({ quotaMinutes: (left / 60).toFixed(1) });
   },

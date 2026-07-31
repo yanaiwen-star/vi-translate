@@ -135,8 +135,13 @@ class Settings:
 
         # --- Billing defaults (overridable; see billing/plans.py for catalog) ---
         self.free_quota_chars: int = int(os.environ.get("FREE_QUOTA_CHARS", "5000"))
-        # 墙钟计费：每个登录用户每天免费赠送的实时同传分钟数（次日 UTC 0 点重置）。
-        self.free_daily_minutes: int = int(os.environ.get("FREE_DAILY_MINUTES", "30"))
+        # 墙钟计费：每个登录用户「一次性」赠送的实时同传分钟数（终身累计，用完不再重置）。
+        # 兼容旧变量名 FREE_DAILY_MINUTES（历史部署的 .env 仍可能写它）。
+        self.free_total_minutes: int = int(
+            os.environ.get("FREE_TOTAL_MINUTES")
+            or os.environ.get("FREE_DAILY_MINUTES")
+            or "30"
+        )
 
         # --- WeChat Mini Program Virtual Pay (虚拟支付 / 道具直购) ---
         # 1450590380 — 虚拟支付商户号 (NOT a productId, that's a different

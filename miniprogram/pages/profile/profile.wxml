@@ -9,10 +9,10 @@
     </view>
   </view>
 
-  <!-- 今日配额 -->
+  <!-- 免费配额（一次性，用完不再重置） -->
   <view class="card quota">
     <view class="quota-info">
-      <view class="quota-left">今日免费剩余 <text class="num">{{quotaMinutes}}</text> 分钟</view>
+      <view class="quota-left">免费剩余 <text class="num">{{quotaMinutes}}</text> 分钟</view>
       <view class="quota-sub" wx:if="{{purchasedMinutes > 0}}">已购时长包剩余 <text class="num">{{purchasedMinutes}}</text> 分钟</view>
     </view>
     <view class="quota-link" bindtap="onOpenPricing">购买时长包 ›</view>

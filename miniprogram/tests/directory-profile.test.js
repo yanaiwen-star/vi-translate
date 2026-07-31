@@ -27,7 +27,7 @@ test('My page exposes self-service management without removing existing quota', 
   assert.match(template, /免费入驻|我的译员名片/);
   assert.match(template, /联系申请/);
   assert.match(template, /我的翻译需求/);
-  assert.match(template, /今日免费剩余/);
+  assert.match(template, /免费剩余/);
 });
 
 test('directory API exposes profile and authorization methods', () => {

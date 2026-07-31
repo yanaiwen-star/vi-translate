@@ -1,6 +1,6 @@
 """Quota pools, Redis-backed rate limiting and usage persistence.
 
-Quota sources (priority order when consuming): free daily quota -> purchased
+Quota sources (priority order when consuming): one-off free quota -> purchased
 time-pack pool. Each pack purchase is stored as an active subscription with
 interval='payg' and no expiry, so its (granted - used) balance is just another
 pool the wall-clock meter draws from.
@@ -37,9 +37,17 @@ CHARS_PER_MINUTE = 2000
 # 墙钟计费的唯一换算基准：流逝 N 秒 -> N/60*CHARS_PER_MINUTE 个「字符额度」被消耗。
 # 套餐/赠送的「分钟」在授权时即乘以该系数存入字符池，因此此处无需再做换算。
 WALLCLOCK_TICK_SECONDS = 5         # 墙钟计量器轮询间隔（秒）
-# 免费层：每天赠送 N 分钟墙钟同传（按 CST 日期 key；次日 0 点自动换新池）。
-FREE_DAILY_MINUTES = getattr(settings, "free_daily_minutes", 30)
-FREE_DAILY_CHARS = FREE_DAILY_MINUTES * CHARS_PER_MINUTE
+# 免费层：每个账号「一次性」赠送 N 分钟墙钟同传（终身累计，用完不再重置）。
+# 已用量记在 users.free_total_used_chars（数据库），不放 Redis：生产 Redis 用
+# allkeys-lru 淘汰策略，永久 key 可能被逐出，会让用完的免费额度「复活」。
+FREE_TOTAL_MINUTES = getattr(
+    settings, "free_total_minutes", getattr(settings, "free_daily_minutes", 30)
+)
+FREE_TOTAL_CHARS = FREE_TOTAL_MINUTES * CHARS_PER_MINUTE
+
+# 旧名保留为别名，避免历史引用（脚本 / 后台）直接崩掉。
+FREE_DAILY_MINUTES = FREE_TOTAL_MINUTES
+FREE_DAILY_CHARS = FREE_TOTAL_CHARS
 
 
 def _month_key() -> str:
@@ -130,10 +138,8 @@ def available_chars(user_id: str | None) -> int:
         if not user:
             return 0
         total = 0
-        # 1) 每日免费墙钟分钟池（优先级最高，先用免费再扣付费）
-        day = _day_key()
-        used_daily = int(r.get(f"free_daily:{user_id}:{day}") or 0)
-        total += max(0, FREE_DAILY_CHARS - used_daily)
+        # 1) 一次性免费墙钟分钟池（优先级最高，先用免费再扣付费；终身累计不重置）
+        total += max(0, FREE_TOTAL_CHARS - (user.free_total_used_chars or 0))
         # 2) 后台手动赠送的长期免费额度（free_quota_chars）
         used_free = int(r.get(f"free:{user_id}:{_month_key()}") or 0)
         total += max(0, user.free_quota_chars - used_free)
@@ -239,30 +245,28 @@ def _consume_pools(db, user_id: str, chars: int) -> None:
     remaining = chars
     r = get_redis()
 
-    # 1) 每日免费墙钟分钟池（优先消耗）
-    day = _day_key()
-    dfree_key = f"free_daily:{user_id}:{day}"
-    dfree_used = int(r.get(dfree_key) or 0)
-    dfree_left = max(0, FREE_DAILY_CHARS - dfree_used)
-    take = min(remaining, dfree_left)
-    if take:
-        r.incrby(dfree_key, take)
-        r.expire(dfree_key, 86400 * 2)
-        remaining -= take
+    user = db.query(User).get(user_id)
+
+    # 1) 一次性免费墙钟分钟池（优先消耗；已用量持久化在 users 表，跨天不重置）
+    if user:
+        free_used = user.free_total_used_chars or 0
+        free_left = max(0, FREE_TOTAL_CHARS - free_used)
+        take = min(remaining, free_left)
+        if take:
+            user.free_total_used_chars = free_used + take
+            remaining -= take
 
     # 2) 后台手动赠送的长期免费额度（free_quota_chars）
-    if remaining:
-        user = db.query(User).get(user_id)
-        if user:
-            month = _month_key()
-            fkey = f"free:{user_id}:{month}"
-            used_free = int(r.get(fkey) or 0)
-            free_left = max(0, user.free_quota_chars - used_free)
-            take = min(remaining, free_left)
-            if take:
-                r.incrby(fkey, take)
-                r.expire(fkey, 86400 * 40)
-                remaining -= take
+    if remaining and user:
+        month = _month_key()
+        fkey = f"free:{user_id}:{month}"
+        used_free = int(r.get(fkey) or 0)
+        granted_left = max(0, user.free_quota_chars - used_free)
+        take = min(remaining, granted_left)
+        if take:
+            r.incrby(fkey, take)
+            r.expire(fkey, 86400 * 40)
+            remaining -= take
 
     # 3) 已购语音包（无到期日，按剩余额度扣减）
     if remaining:

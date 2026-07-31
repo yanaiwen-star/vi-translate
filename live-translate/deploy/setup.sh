@@ -152,8 +152,8 @@ MAX_BODY_BYTES=8000000
 
 # --- Billing ---
 FREE_QUOTA_CHARS=5000
-# 墙钟计费：每用户每天免费同传分钟数（次日 UTC 0 点重置）
-FREE_DAILY_MINUTES=30
+# 墙钟计费：每用户一次性免费同传分钟数（终身累计，用完不再重置）
+FREE_TOTAL_MINUTES=30
 
 # === WeChat Pay (备案后再启用) ===
 # WECHAT_MCH_ID=

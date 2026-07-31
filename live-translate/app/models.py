@@ -29,6 +29,12 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
     free_quota_chars: Mapped[int] = mapped_column(Integer, default=5000)
+    # 一次性免费同传额度的累计已用量（字符等值，CHARS_PER_MINUTE=2000）。
+    # 存库而非 Redis：Redis 配置了 allkeys-lru 淘汰策略，永久 key 可能被逐出，
+    # 会让已用完的免费额度「复活」。
+    free_total_used_chars: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     # role: 'user' (default) | 'admin'
     role: Mapped[str] = mapped_column(String(16), default="user", index=True)

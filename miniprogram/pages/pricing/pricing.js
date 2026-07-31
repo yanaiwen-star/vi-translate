@@ -63,7 +63,7 @@ Page({
 
   // 免费总额（分钟）
   refreshFree() {
-    const q = app.globalData.dailyQuota || { used: 0, limit: 1800 };
+    const q = app.globalData.freeQuota || { used: 0, limit: 1800 };
     this.setData({
       freeMinutes: Math.round((q.limit || 1800) / 60)
     });
