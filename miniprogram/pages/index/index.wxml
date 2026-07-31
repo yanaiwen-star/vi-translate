@@ -198,6 +198,11 @@
     </view>
   </view>
 
+  <!-- 音量条（语音翻译模式）：置于开始/停止栏上方 -->
+  <view wx:if="{{mode === 'voice'}}" class="meter-row">
+    <view class="meter"><view class="levelBar" style="width:{{levelPct}}%"></view></view>
+  </view>
+
   <!-- 动作按钮（语音翻译模式） -->
   <view wx:if="{{mode === 'voice'}}" class="action-group">
     <button class="primary-action" bindtap="onStart" disabled="{{running}}">开始</button>
@@ -249,11 +254,6 @@
         <switch checked="{{audioEnabled}}" bindchange="onToggleAudio" color="#07C160" />
       </view>
     </view>
-  </view>
-
-  <!-- 底部：音量条（语音翻译模式） -->
-  <view wx:if="{{mode === 'voice'}}" class="meter-row">
-    <view class="meter"><view class="levelBar" style="width:{{levelPct}}%"></view></view>
   </view>
 
 </view>
