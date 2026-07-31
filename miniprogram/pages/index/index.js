@@ -139,6 +139,12 @@ Page({
   lastTranslationPartial: '',
 
   onLoad() {
+    // 防御性再设一次 iOS 音频会话解锁（主设置在 app.js onLaunch，这里兜底，
+    // 防止某些基础库版本下全局设置未生效导致同传语音不响）。
+    if (wx.setInnerAudioOption) {
+      wx.setInnerAudioOption({ obeyMuteSwitch: false, mixWithOther: true });
+    }
+
     this.recorder = new RecorderManager();
     this.recorder.init({ mode: 'pcm', duration: 0 });
     this.recorder.onProgress = (info) => {
@@ -146,7 +152,9 @@ Page({
       this.setData({ levelPct: Math.min(100, info.volume || 0) });
     };
     this.recorder.onFrame = (frame) => {
-      if (this.ttsPlaying) return;   // TTS 播放期间屏蔽麦克风上送，破除回声自激环路
+      // iPhone 扬声器全双工易自激，译文播放时仍屏蔽麦克风上送（防回声环路）。
+      // 单句内录音已是逐帧流式上传，边听边译的"边"由录音帧粒度决定（见 recorder.js）。
+      if (this.ttsPlaying) return;
       if (this.live && this.live.connected) {
         this.live.sendAudioFrame(frame);
       }
@@ -416,12 +424,16 @@ Page({
   // —— 处理服务器下行消息（与网页版 handleServerMessage 对齐）——
   handleLiveMessage(m) {
     if (m.type === 'model_audio_wav') {
+      // 同传模式以服务器下发的整段 WAV 作为译文语音：model_audio 流式 PCM 在 iOS 上
+      // 由客户端拼出的 WAV 不发声（采样率/格式对齐问题），故以服务器完整 WAV 为准、必定可播；
+      // 同时跳过 model_audio 避免同句双播。面对面模式由 handleFaceMessage 处理，这里不接。
+      if (this.data.mode === 'face') return;
       this.enqueueAudio(m.audio);
       return;
     }
     if (m.type === 'model_audio') {
-      // DashScope 流式 PCM delta：累积一段后打包成 WAV，用 InnerAudioContext 播放
-      this.enqueuePcmAudio(m.audio);
+      // 流式 PCM 语音路径暂不可用（iOS 客户端拼 WAV 不发声），跳过以免与整段 WAV 双播；
+      // 待录音方案改造、确认能稳定出声后再启用。
       return;
     }
     if (m.type !== 'model_event') return;
@@ -586,7 +598,7 @@ Page({
     for (const p of this.audioPcmBuffer) { merged.set(p, off); off += p.byteLength; }
     this.audioPcmBuffer = [];
 
-    const sampleRate = this.audioSampleRate;
+    const sampleRate = this.audioSampleRate || 24000;
     const dataLen = merged.byteLength;
     const buf = new ArrayBuffer(44 + dataLen);
     const view = new DataView(buf);
@@ -667,6 +679,8 @@ Page({
     };
     audio.onEnded(onDone);
     audio.onError((e) => { console.warn('audio play err', e); onDone(); });
+    if (audio.onPlay) audio.onPlay(() => { console.log('[audio] play started, path=', path); });
+    if (audio.onCanplay) audio.onCanplay(() => { console.log('[audio] canplay, path=', path); });
     audio.play();
   },
 

@@ -33,8 +33,11 @@ test('suppresses microphone upload while translated audio is playing', () => {
   const handler = source.match(/this\.recorder\.onFrame = \(frame\) => \{([\s\S]*?)\n    \};/);
 
   assert.ok(handler, 'recorder frame handler should exist');
+  // 半双工：译文语音播放（ttsPlaying=true）时屏蔽麦克风上送，破除 iPhone 扬声器回声自激环路；
+  // 单句内录音仍是逐帧流式上传，文字层 translation_partial 不受此闸门影响，照常边说边出。
   assert.match(handler[1], /ttsPlaying/);
   assert.match(handler[1], /return/);
+  assert.match(handler[1], /if \(this\.ttsPlaying\) return/);
   assert.match(handler[1], /sendAudioFrame\(frame\)/);
 });
 
@@ -53,11 +56,11 @@ test('reconnects an interrupted upstream without stopping the recorder', () => {
   assert.doesNotMatch(handler[1], /stopSession\(/);
 });
 
-test('plays streaming PCM and suppresses the duplicate complete WAV', () => {
+test('plays complete WAV for voice audio and skips streaming PCM (iOS-safe)', () => {
   const page = loadPage();
   const queued = [];
   page.data.running = true;
-  page.playStreamingPcm = () => { queued.push('pcm'); return true; };
+  page.enqueuePcmAudio = (audio) => { queued.push('pcm'); };
   page.enqueueAudio = (audio, force) => queued.push({ audio, force });
   page.setData = () => {};
 
@@ -65,7 +68,8 @@ test('plays streaming PCM and suppresses the duplicate complete WAV', () => {
   page.handleLiveMessage({ type: 'model_audio', audio: 'pcm' });
   page.handleLiveMessage({ type: 'model_audio_wav', audio: 'wav' });
 
-  assert.deepEqual(queued, ['pcm']);
+  // 同传模式（默认 mode=voice）用服务器整段 WAV 出声；流式 model_audio 在 iOS 拼 WAV 不发声，跳过
+  assert.deepEqual(queued, [{ audio: 'wav', force: undefined }]);
 });
 
 test('keeps earlier source items visible when a new transcription item starts', () => {
@@ -184,7 +188,7 @@ test('voice templates bind both realtime panels to independent scroll positions'
   assert.match(styles, /\.voice-workspace \.voice-panel\s*{[^}]*height:\s*420rpx/s);
 });
 
-test('auto-plays the complete WAV when streaming audio is unavailable', () => {
+test('voice mode auto-plays the complete WAV for translation audio', () => {
   const page = loadPage();
   const queued = [];
   page.data.running = true;
@@ -316,6 +320,8 @@ test('audio queue unwraps turn items and continues after an error', () => {
         play() {},
         onEnded(callback) { this.ended = callback; },
         onError(callback) { this.error = callback; },
+        onPlay(callback) { this.playCb = callback; },
+        onCanplay(callback) { this.canplayCb = callback; },
         onTimeUpdate() {}
       };
       contexts.push(context);

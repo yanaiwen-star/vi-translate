@@ -107,9 +107,9 @@ class RecorderManager {
       duration: this.maxDuration > 0 ? Math.min(this.maxDuration, 600000) : 600000,
       sampleRate: 16000,
       numberOfChannels: 1,
-      encodeBitRate: 48000,
+      encodeBitRate: 24000,
       audioSource: this.audioSource,
-      frameSize: 4,
+      frameSize: 2,
       format: 'PCM'
     });
   }

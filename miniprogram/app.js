@@ -19,6 +19,13 @@ App({
   },
 
   onLaunch() {
+    // 全局解锁 iOS 音频会话：微信 iOS 上 InnerAudioContext 默认受系统静音键 /
+    // 环境音频会话(category)影响，不调用此 API 会导致同传/面对面/消息的语音完全不响。
+    // 必须在任何播放前设置一次（全局生效，覆盖所有页面的音频上下文）。
+    if (wx.setInnerAudioOption) {
+      wx.setInnerAudioOption({ obeyMuteSwitch: false, mixWithOther: true });
+    }
+
     // 同传已改用网页版 Qwen 系统（底层 DashScope realtime），不再依赖云函数
 
     // 微信登录 → 换取服务器 JWT（用户/历史存到 ECS 后端）
