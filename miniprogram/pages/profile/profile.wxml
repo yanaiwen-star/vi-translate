@@ -39,6 +39,10 @@
       <text class="setting-label">意见反馈</text>
       <text class="arrow">›</text>
     </view>
+    <view class="setting-item">
+      <text class="setting-label">联系客服</text>
+      <button class="bind-btn" open-type="contact">点击联系</button>
+    </view>
     <view class="setting-item" bindtap="onAbout">
       <text class="setting-label">关于</text>
       <text class="arrow">›</text>
