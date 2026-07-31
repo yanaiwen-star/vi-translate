@@ -11,10 +11,10 @@ App({
     accessToken: null,
     // 当前会话
     currentSessionId: null,
-    // 每日免费配额：20 分钟 = 1200 秒（超出需购买语音包）
+    // 免费配额：30 分钟 = 1800 秒（超出需购买语音包）
     dailyQuota: {
       used: 0,
-      limit: 1200,
+      limit: 1800,
       date: ''
     }
   },
@@ -61,7 +61,7 @@ App({
     if (this.globalData.dailyQuota.date === today) return;
     this.globalData.dailyQuota = {
       used: 0,
-      limit: 1200,
+      limit: 1800,
       date: today
     };
   },
@@ -80,7 +80,7 @@ App({
         const today = new Date().toISOString().slice(0, 10);
         this.globalData.dailyQuota.date = today;
         // 信任 server 返回的 available_minutes（剩余分钟）。limit 字段仅用于「我的」页展示。
-        this.globalData.dailyQuota.limit = 20 * 60; // 20 分钟 = 1200 秒（与 HEAD 文案对齐，server 端用满 20 分钟也会归零）
+        this.globalData.dailyQuota.limit = 30 * 60; // 30 分钟 = 1800 秒（与后端 FREE_DAILY_MINUTES=30 对齐）
         this.globalData.dailyQuota.used = Math.max(0, this.globalData.dailyQuota.limit - r.available_minutes * 60);
         return r.available_minutes > 0;
       }

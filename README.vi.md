@@ -18,7 +18,7 @@ Mở WeChat, quét mã QR bên trên để trải nghiệm Mini Program Yuexun T
 
 | Chế độ | Mô tả | Chi phí |
 |--------|-------|---------|
-| 🎙️ **Phiên dịch song song** | Dịch đồng thời theo thời gian thực: vừa nói vừa hiện bản dịch, dựa trên đường truyền streaming WebSocket | Miễn phí 30 phút mỗi ngày, vượt hạn mức có thể mua gói giọng nói |
+| 🎙️ **Phiên dịch song song** | Dịch đồng thời theo thời gian thực: vừa nói vừa hiện bản dịch, dựa trên đường truyền streaming WebSocket | Miễn phí 30 phút, vượt hạn mức có thể mua gói giọng nói |
 | 🗣️ **Mặt đối mặt** | Hai micro, mỗi người một câu: hai người mỗi bên giữ micro của mình để nói (PTT), phía đối diện hiển thị bản dịch xoay ngược 180°, phù hợp giao tiếp trực tiếp | Như trên (dùng chung đường truyền phiên dịch) |
 | 📷 **Dịch qua ảnh** | Chụp/chọn ảnh, nhận diện và dịch chữ trong ảnh (mô hình thị giác lớn) | Miễn phí (chỉ giới hạn tần suất chống lạm dụng) |
 | ✍️ **Dịch văn bản** | Nhập văn bản, dịch tức thì hai chiều | Miễn phí (chỉ giới hạn tần suất chống lạm dụng) |
@@ -32,7 +32,7 @@ Mở WeChat, quét mã QR bên trên để trải nghiệm Mini Program Yuexun T
 ### Nguyên tắc sản phẩm
 
 - Không thu số điện thoại, không thu hộ phí dịch thuật; phiên dịch viên đăng ký miễn phí vĩnh viễn
-- Chỉ tính phí khi phiên dịch song song vượt hạn mức miễn phí hàng ngày (gói giọng nói ¥9.9 / ¥19.9 / ¥49.9 tương ứng 60 / 200 / 600 phút, mua một lần dùng lâu dài)
+- Chỉ tính phí khi phiên dịch song song vượt hạn mức miễn phí (gói giọng nói ¥9.9 / ¥19.9 / ¥49.9 tương ứng 60 / 200 / 600 phút, mua một lần dùng lâu dài)
 
 ## 🛠️ Công nghệ sử dụng
 
@@ -154,7 +154,7 @@ cp ../.env.example .env   # Điền cấu hình production (setup.sh tự sinh m
 | `REDIS_URL` | Chuỗi kết nối Redis (cục bộ có thể bỏ trống, tự dùng fakeredis) |
 | `JWT_SECRET` | Khóa ký JWT (production phải là chuỗi ngẫu nhiên mạnh) |
 | `DIRECTORY_CONTACT_KEY` | Khóa Fernet mã hóa thông tin liên hệ phiên dịch viên |
-| `FREE_DAILY_MINUTES` | Số phút phiên dịch miễn phí mỗi ngày, mặc định 30 |
+| `FREE_DAILY_MINUTES` | Số phút phiên dịch miễn phí, mặc định 30 |
 
 Danh sách đầy đủ xem tại [`live-translate/.env.example`](live-translate/.env.example).
 
