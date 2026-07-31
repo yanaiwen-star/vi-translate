@@ -11,11 +11,13 @@ App({
     accessToken: null,
     // 当前会话
     currentSessionId: null,
-    // 一次性免费配额：30 分钟 = 1800 秒（终身累计，用完需购买语音包，不再每日重置）
-    freeQuota: {
-      used: 0,
-      limit: 1800
-    }
+    // 剩余同传时长（分钟）——全局唯一的额度数字。
+    // 唯一真相是服务端 /billing/quota 的 available_minutes，已汇总
+    //「注册一次性赠送 + 绑定奖励 + 已购时长包」，客户端不再维护第二套免费池。
+    // null = 尚未从服务端拉到（此时不拦截，避免网络抖动误杀正常用户）。
+    quotaMinutes: null,
+    // 注册一次性赠送分钟数：仅用于定价页的政策文案展示，与「剩余时长」无关。
+    freeGrantMinutes: 30
   },
 
   onLaunch() {
@@ -60,40 +62,39 @@ App({
     }
   },
 
-  // 启动时拉一次真实剩余额度（一次性额度，服务器是唯一真相；失败则沿用默认值，
+  // 启动时拉一次真实剩余时长（服务器是唯一真相；失败则保持 null，
   // 真正的拦截仍以每次开播前的 checkQuota() 为准）。
   async loadQuota() {
     try {
       const r = await request('GET', '/billing/quota', {}, true);
       if (r && typeof r.available_minutes === 'number') {
-        const q = this.globalData.freeQuota;
-        q.used = Math.max(0, q.limit - r.available_minutes * 60);
+        this.globalData.quotaMinutes = Math.max(0, r.available_minutes);
       }
     } catch (e) {
-      // 未登录或网络不可达：保持默认值，不阻塞启动
+      // 未登录或网络不可达：保持 null，不阻塞启动
     }
   },
 
-  // 更新配额使用（本地估算；仅在 onStop 录音结束时调用一次）
+  // 本地估算扣减（仅在 onStop 录音结束时调用一次）；下次 checkQuota 会用服务端值校正。
   updateQuota(seconds) {
-    this.globalData.freeQuota.used += seconds;
+    if (typeof this.globalData.quotaMinutes !== 'number') return;
+    const usedMin = Math.max(0, Math.round((seconds || 0) / 60));
+    this.globalData.quotaMinutes = Math.max(0, this.globalData.quotaMinutes - usedMin);
   },
 
-  // 检查配额：异步从 server 拉真实剩余（不依赖 in-memory 计数，避免反复录音累积漂移）。
-  // 失败时兜底用 in-memory 状态。返回 boolean：true=还有剩余。
+  // 检查剩余时长：异步从 server 拉真实剩余（不依赖本地计数，避免反复录音累积漂移）。
+  // 返回 boolean：true=还有剩余。服务端不可达时不拦截，避免网络抖动误杀正常用户。
   async checkQuota() {
     try {
       const r = await request('GET', '/billing/quota', {}, true);
       if (r && typeof r.available_minutes === 'number') {
-        // 信任 server 返回的 available_minutes（剩余分钟）。limit 字段仅用于「我的」页展示。
-        this.globalData.freeQuota.limit = 30 * 60; // 30 分钟 = 1800 秒（与后端 FREE_TOTAL_MINUTES=30 对齐）
-        this.globalData.freeQuota.used = Math.max(0, this.globalData.freeQuota.limit - r.available_minutes * 60);
+        this.globalData.quotaMinutes = Math.max(0, r.available_minutes);
         return r.available_minutes > 0;
       }
     } catch (e) {
-      // server 不可达：兜底用 in-memory
+      // server 不可达：落到下面的兜底判断
     }
-    return this.globalData.freeQuota.used < this.globalData.freeQuota.limit;
+    return this.globalData.quotaMinutes === null || this.globalData.quotaMinutes > 0;
   },
 
   // 半拦：检测昵称是否设置；如未设置，跳强制设置页（用于"首次发起需要用户身份的操作"前）。

@@ -3,7 +3,8 @@ from __future__ import annotations
 """Plan catalog.
 
 计费模型：只保留「按量语音包」，不再有会员月卡/年卡。
-免费层为「每日 30 分钟」，由客户端 + 网关配额控制，不作为可购买 Plan。
+赠送时长为「注册一次性 30 分钟」（终身累计，用完不重置，非每日额度），
+由 billing/quota.FREE_TOTAL_MINUTES 控制，不作为可购买 Plan。
 
 字段复用说明：为避免数据库迁移，本项目沿用 `chars_per_period` 字段，
 但其语义已重新定义为「该套餐赠送的同传分钟数」。前端一律按「分钟」展示。

@@ -53,10 +53,6 @@ WALLCLOCK_TICK_SECONDS = 5         # 墙钟计量器轮询间隔（秒）
 FREE_TOTAL_MINUTES = int(getattr(settings, "free_total_minutes", 30))
 FREE_TOTAL_CHARS = FREE_TOTAL_MINUTES * CHARS_PER_MINUTE
 
-# 旧名保留为别名，避免历史引用（脚本 / 后台）直接崩掉。
-FREE_DAILY_MINUTES = FREE_TOTAL_MINUTES
-FREE_DAILY_CHARS = FREE_TOTAL_CHARS
-
 
 def _month_key() -> str:
     return cst_key("%Y-%m")
@@ -129,7 +125,8 @@ def tick_wallclock(session_id: str, user_id: str | None, total_chars: int) -> tu
         return False, "同传时长已用尽，请升级套餐或充值。"
     dkey = f"day:{user_id or 'anon'}:{_day_key()}"
     if int(r.get(dkey) or 0) > DAILY_CHARS_CAP:
-        return False, "今日同传时长已达上限，明日重置。"
+        # 防失控安全护栏（约 1 万分钟/天），与赠送额度无关，正常使用不会触发。
+        return False, "使用量异常，已触发安全上限，请稍后再试或联系客服。"
     return True, None
 
 
@@ -186,7 +183,8 @@ def add_session_usage(
     dused = r.incrby(dkey, chars)
     r.expire(dkey, 86400 * 2)
     if dused > DAILY_CHARS_CAP:
-        return False, "今日翻译字数已达上限，明日重置。"
+        # 防失控安全护栏，与赠送额度无关，正常使用不会触发。
+        return False, "使用量异常，已触发安全上限，请稍后再试或联系客服。"
     return True, None
 
 

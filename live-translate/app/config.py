@@ -134,13 +134,14 @@ class Settings:
         ).lower() in ("1", "true", "yes", "on")
 
         # --- Billing defaults (overridable; see billing/plans.py for catalog) ---
-        self.free_quota_chars: int = int(os.environ.get("FREE_QUOTA_CHARS", "5000"))
+        # 运营手动赠送池的初始值，默认 0：注册赠送统一走 free_total_minutes 这一个池，
+        # 不再从这里额外附赠（历史默认 5000 会让新账号凭空多出 2.5 分钟）。
+        self.free_quota_chars: int = int(os.environ.get("FREE_QUOTA_CHARS", "0"))
         # 墙钟计费：每个登录用户「一次性」赠送的实时同传分钟数（终身累计，用完不再重置）。
-        # 兼容旧变量名 FREE_DAILY_MINUTES（历史部署的 .env 仍可能写它）。
+        # 刻意不再兼容旧变量名 FREE_DAILY_MINUTES：那是「每日重置」时代的遗留，
+        # 历史部署 .env 里残留的 FREE_DAILY_MINUTES=20 会把赠送额度错误地压成 20 分钟。
         self.free_total_minutes: int = int(
-            os.environ.get("FREE_TOTAL_MINUTES")
-            or os.environ.get("FREE_DAILY_MINUTES")
-            or "30"
+            os.environ.get("FREE_TOTAL_MINUTES") or "30"
         )
 
         # --- WeChat Mini Program Virtual Pay (虚拟支付 / 道具直购) ---

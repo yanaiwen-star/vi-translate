@@ -49,23 +49,15 @@
       </div>
     </section>
 
-    <!-- 配额双卡片 -->
-    <section class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+    <!-- 剩余同传时长（唯一数字：注册赠送 + 绑定奖励 + 已购时长包，不区分免费/付费） -->
+    <section class="mb-4">
       <div class="card">
-        <div class="text-[13px] text-slate-500 mb-2">同传剩余额度</div>
+        <div class="text-[13px] text-slate-500 mb-2">剩余同传时长</div>
         <div class="flex items-baseline gap-2 mb-1">
           <span id="quotaMinutes" class="stat-num brand">--</span>
           <span class="text-slate-400 text-sm">分钟</span>
         </div>
-        <div class="text-[12px] text-slate-400 mt-2">免费 30 分钟</div>
-      </div>
-      <div class="card">
-        <div class="text-[13px] text-slate-500 mb-2">语音包余额</div>
-        <div class="flex items-baseline gap-2 mb-1">
-          <span id="packMinutes" class="stat-num">--</span>
-          <span class="text-slate-400 text-sm">分钟</span>
-        </div>
-        <div class="text-[12px] text-slate-400 mt-2">购买后长期有效</div>
+        <div class="text-[12px] text-slate-400 mt-2">含注册赠送与已购时长包，用完可购买</div>
       </div>
     </section>
 
@@ -273,14 +265,17 @@
       loginTypePill.textContent = '邮箱登录';
     }
 
-    const totalMin = Math.floor((quota.available_chars || 0) / CHARS_PER_MINUTE);
+    // 只展示一个总数：注册赠送 + 绑定奖励 + 已购时长包，均由 /billing/quota 汇总，
+    // 不再拆分「免费额度 / 语音包余额」两个数字（旧的 totalMin-20 拆分是每日制残留）。
+    const totalMin = typeof quota.available_minutes === 'number'
+      ? quota.available_minutes
+      : Math.floor((quota.available_chars || 0) / CHARS_PER_MINUTE);
     document.getElementById('quotaMinutes').textContent = totalMin;
-    const packMin = Math.max(0, totalMin - 20);
-    document.getElementById('packMinutes').textContent = packMin;
-    document.getElementById('memberPill').classList.toggle('hidden', packMin <= 0);
 
     const ordersList = document.getElementById('ordersList');
     const paid = (orders || []).filter(o => o.status === 'paid' || o.status === 'fulfilled');
+    // 「已购套餐」标签以真实订单为准（旧逻辑用 剩余分钟-20 反推，属每日制残留）
+    document.getElementById('memberPill').classList.toggle('hidden', paid.length === 0);
     if (paid.length === 0) {
       ordersList.innerHTML = `<div class="text-center py-6 text-slate-400 text-[13px]">还没有购买过套餐，可点击下方「购买套餐」</div>`;
     } else {

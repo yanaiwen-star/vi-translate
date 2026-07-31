@@ -61,11 +61,10 @@ Page({
     this.setData({ packs, loading: false });
   },
 
-  // 免费总额（分钟）
+  // 注册一次性赠送分钟数（政策文案展示，不是余额；余额见「我的」页的剩余同传时长）
   refreshFree() {
-    const q = app.globalData.freeQuota || { used: 0, limit: 1800 };
     this.setData({
-      freeMinutes: Math.round((q.limit || 1800) / 60)
+      freeMinutes: (app.globalData && app.globalData.freeGrantMinutes) || 30
     });
   },
 

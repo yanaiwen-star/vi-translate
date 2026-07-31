@@ -5,8 +5,11 @@ The database stores timestamps in UTC (SQLAlchemy column defaults use
 China time so that:
 
   * order / usage times shown to the user match Beijing wall-clock, and
-  * the free daily quota resets at China-local midnight (not UTC midnight,
-    which would be 08:00 Beijing).
+  * per-day usage buckets (anti-abuse safety caps, camera frame caps) roll over
+    at China-local midnight rather than UTC midnight (08:00 Beijing).
+
+Note: the free translation allowance is a one-off lifetime grant
+(``FREE_TOTAL_MINUTES``) and never resets — no daily quota exists anymore.
 
 All "current time" access in business logic should go through ``now_cst()``,
 and any UTC ``datetime`` loaded from the DB should be converted with

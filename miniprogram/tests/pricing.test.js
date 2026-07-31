@@ -10,7 +10,7 @@ test('shows processing instead of payment failure while fulfillment is pending',
   require.cache[payPath] = {
     exports: { payPlan: async () => ({ success: false, processing: true }) },
   };
-  global.getApp = () => ({ globalData: { freeQuota: { limit: 1800 } } });
+  global.getApp = () => ({ globalData: { freeGrantMinutes: 30 } });
   const toasts = [];
   global.wx = { showToast: (value) => toasts.push(value), switchTab() {} };
   let page;
