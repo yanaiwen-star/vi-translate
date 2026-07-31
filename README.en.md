@@ -18,7 +18,7 @@ Open WeChat, scan the QR code above, and try the Yuexun Translation Mini Program
 
 | Mode | Description | Pricing |
 |------|-------------|---------|
-| 🎙️ **Simultaneous** | Real-time interpretation: translation appears as you speak, over a streaming WebSocket pipeline | 30 free minutes; voice packs available beyond that |
+| 🎙️ **Simultaneous** | Real-time interpretation: translation appears as you speak, over a streaming WebSocket pipeline | 30 minutes free on registration (one-time grant, not reset daily); voice packs available beyond that |
 | 🗣️ **Face-to-Face** | Dual-mic, one sentence at a time: each person holds their own mic to talk (PTT); the other side sees the translation upside-down — ideal for in-person conversations | Same as above (reuses the interpretation pipeline) |
 | 📷 **Photo Translation** | Take/choose a photo, recognize and translate the text in it (vision LLM) | Free (rate-limited only) |
 | ✍️ **Text Translation** | Instant translation of typed text | Free (rate-limited only) |
@@ -32,7 +32,7 @@ Open WeChat, scan the QR code above, and try the Yuexun Translation Mini Program
 ### Product principles
 
 - No phone number collection, no commission on translation fees; translator listing is free forever
-- Only simultaneous interpretation beyond the free quota is billed (voice packs ¥9.9 / ¥19.9 / ¥49.9 for 60 / 200 / 600 minutes, one-time purchase, never expires)
+- Only simultaneous interpretation beyond the granted free minutes is billed. New users get 30 minutes on registration (one-time, lifetime, not reset daily; +10 min for setting a nickname, +20 min for binding a phone, capped at 60 min). Voice packs ¥9.9 / ¥19.9 / ¥49.9 for 60 / 200 / 600 minutes, one-time purchase, never expires.
 
 ## 🛠️ Tech Stack
 
@@ -154,7 +154,7 @@ cp ../.env.example .env   # Fill in production config (setup.sh auto-generates s
 | `REDIS_URL` | Redis connection string (optional locally; falls back to fakeredis) |
 | `JWT_SECRET` | JWT signing secret (must be strong random in production) |
 | `DIRECTORY_CONTACT_KEY` | Fernet key for encrypting translator contact info |
-| `FREE_DAILY_MINUTES` | Free interpretation minutes, default 30 |
+| `FREE_TOTAL_MINUTES` | One-time free interpretation minutes granted on registration, default 30 (lifetime, not reset daily) |
 
 See [`live-translate/.env.example`](live-translate/.env.example) for the full list.
 

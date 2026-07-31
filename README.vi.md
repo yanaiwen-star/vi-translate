@@ -18,7 +18,7 @@ Mở WeChat, quét mã QR bên trên để trải nghiệm Mini Program Yuexun T
 
 | Chế độ | Mô tả | Chi phí |
 |--------|-------|---------|
-| 🎙️ **Phiên dịch song song** | Dịch đồng thời theo thời gian thực: vừa nói vừa hiện bản dịch, dựa trên đường truyền streaming WebSocket | Miễn phí 30 phút, vượt hạn mức có thể mua gói giọng nói |
+| 🎙️ **Phiên dịch song song** | Dịch đồng thời theo thời gian thực: vừa nói vừa hiện bản dịch, dựa trên đường truyền streaming WebSocket | Tặng 30 phút khi đăng ký (tặng một lần, không đặt lại hàng ngày), vượt hạn mức có thể mua gói giọng nói |
 | 🗣️ **Mặt đối mặt** | Hai micro, mỗi người một câu: hai người mỗi bên giữ micro của mình để nói (PTT), phía đối diện hiển thị bản dịch xoay ngược 180°, phù hợp giao tiếp trực tiếp | Như trên (dùng chung đường truyền phiên dịch) |
 | 📷 **Dịch qua ảnh** | Chụp/chọn ảnh, nhận diện và dịch chữ trong ảnh (mô hình thị giác lớn) | Miễn phí (chỉ giới hạn tần suất chống lạm dụng) |
 | ✍️ **Dịch văn bản** | Nhập văn bản, dịch tức thì hai chiều | Miễn phí (chỉ giới hạn tần suất chống lạm dụng) |
@@ -32,7 +32,7 @@ Mở WeChat, quét mã QR bên trên để trải nghiệm Mini Program Yuexun T
 ### Nguyên tắc sản phẩm
 
 - Không thu số điện thoại, không thu hộ phí dịch thuật; phiên dịch viên đăng ký miễn phí vĩnh viễn
-- Chỉ tính phí khi phiên dịch song song vượt hạn mức miễn phí (gói giọng nói ¥9.9 / ¥19.9 / ¥49.9 tương ứng 60 / 200 / 600 phút, mua một lần dùng lâu dài)
+- Chỉ tính phí khi phiên dịch song song vượt quá thời lượng được tặng. Người dùng mới được tặng 30 phút khi đăng ký (một lần, tích lũy trọn đời, dùng hết không đặt lại; +10 phút khi đặt biệt danh, +20 phút khi liên kết số điện thoại, tối đa 60 phút). Gói giọng nói ¥9.9 / ¥19.9 / ¥49.9 tương ứng 60 / 200 / 600 phút, mua một lần dùng lâu dài.
 
 ## 🛠️ Công nghệ sử dụng
 
@@ -154,7 +154,7 @@ cp ../.env.example .env   # Điền cấu hình production (setup.sh tự sinh m
 | `REDIS_URL` | Chuỗi kết nối Redis (cục bộ có thể bỏ trống, tự dùng fakeredis) |
 | `JWT_SECRET` | Khóa ký JWT (production phải là chuỗi ngẫu nhiên mạnh) |
 | `DIRECTORY_CONTACT_KEY` | Khóa Fernet mã hóa thông tin liên hệ phiên dịch viên |
-| `FREE_DAILY_MINUTES` | Số phút phiên dịch miễn phí, mặc định 30 |
+| `FREE_TOTAL_MINUTES` | Số phút phiên dịch miễn phí tặng khi đăng ký, mặc định 30 (tặng một lần, tích lũy trọn đời, không đặt lại hàng ngày) |
 
 Danh sách đầy đủ xem tại [`live-translate/.env.example`](live-translate/.env.example).
 
